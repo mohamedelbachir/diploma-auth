@@ -34,13 +34,13 @@ const Header = () => {
             Accueil
           </Link>
           <Link
-            href="/verification"
+            href="/verify?type=verification"
             className="text-sm font-medium hover:text-primary"
           >
             Vérifier
           </Link>
           <Link
-            href="/certification"
+            href="/verify?type=certification"
             className="text-sm font-medium hover:text-primary"
           >
             Certifier
@@ -91,14 +91,14 @@ const Header = () => {
                   Accueil
                 </Link>
                 <Link
-                  href="/verification"
+                  href="/verify?type=verification"
                   className="text-sm font-medium hover:text-primary"
                   onClick={() => setOpen(false)}
                 >
                   Vérifier
                 </Link>
                 <Link
-                  href="/certification"
+                  href="/verify?type=certification"
                   className="text-sm font-medium hover:text-primary"
                   onClick={() => setOpen(false)}
                 >

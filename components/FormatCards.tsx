@@ -10,7 +10,7 @@ const FormatCards = () => {
       icon: "🔍",
       color: "bg-blue-100",
       textColor: "text-blue-700",
-      link: "/verification",
+      link: "/verify?type=verification",
     },
     {
       title: "Génération de diplôme",
@@ -18,7 +18,7 @@ const FormatCards = () => {
       icon: "📜",
       color: "bg-green-100",
       textColor: "text-green-700",
-      link: "/generation",
+      link: "/profil",
     },
     {
       title: "Archivage sécurisé",
@@ -26,7 +26,7 @@ const FormatCards = () => {
       icon: "🔒",
       color: "bg-orange-100",
       textColor: "text-orange-700",
-      link: "/archivage",
+      link: "/profil",
     },
     {
       title: "Partage de diplôme",
@@ -34,7 +34,7 @@ const FormatCards = () => {
       icon: "🔄",
       color: "bg-gray-100",
       textColor: "text-gray-700",
-      link: "/partage",
+      link: "/profil",
     },
     {
       title: "Certification",
@@ -42,7 +42,7 @@ const FormatCards = () => {
       icon: "🔗",
       color: "bg-purple-100",
       textColor: "text-purple-700",
-      link: "/certification",
+      link: "/verify?type=certification",
     },
     {
       title: "Vérification par QR code",
@@ -50,7 +50,7 @@ const FormatCards = () => {
       icon: "📱",
       color: "bg-red-100",
       textColor: "text-red-700",
-      link: "/qrcode",
+      link: "/verify?type=verification",
     },
   ]
 
@@ -58,7 +58,7 @@ const FormatCards = () => {
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       {formats.map((format, index) => (
         <Link href={format.link} key={index}>
-          <Card className="h-full hover:shadow-md transition-shadow duration-300 hover:-translate-y-1 transition-transform">
+          <Card className="h-full hover:shadow-md duration-300 hover:-translate-y-1 transition-transform">
             <CardContent className="p-6">
               <div className="flex flex-col items-center text-center space-y-2">
                 <div className={`text-4xl rounded-full p-4 ${format.color}`}>

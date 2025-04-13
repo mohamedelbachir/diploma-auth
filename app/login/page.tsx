@@ -153,10 +153,10 @@ const Login = () => {
 
         <div className="text-center text-sm">
           <span className="text-gray-500">
-            Vous n'avez pas encore de compte?
+            Vous n&apos;avez pas encore de compte?
           </span>{" "}
           <Link href="/signup" className="text-primary hover:underline">
-            S'inscrire
+            S&apos;inscrire
           </Link>
         </div> */}
       </div>

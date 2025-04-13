@@ -15,8 +15,8 @@ const Footer = () => {
               <span className="text-xl font-semibold">Auth</span>
             </Link>
             <p className="mt-4 text-sm text-muted-foreground">
-              Solution complète d'authentification et de génération de diplômes
-              sécurisés pour les institutions académiques.
+              Solution complète d&apos;authentification et de génération de
+              diplômes sécurisés pour les institutions académiques.
             </p>
           </div>
 
@@ -104,7 +104,7 @@ const Footer = () => {
                   href="/help"
                   className="text-sm text-muted-foreground hover:text-primary"
                 >
-                  Centre d'aide
+                  Centre d&apos;aide
                 </Link>
               </li>
               <li>
@@ -143,7 +143,7 @@ const Footer = () => {
                 href="/terms"
                 className="text-sm text-muted-foreground hover:text-primary"
               >
-                Conditions d'utilisation
+                Conditions d&apos;utilisation
               </Link>
             </div>
           </div>

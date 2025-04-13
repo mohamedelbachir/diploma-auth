@@ -39,7 +39,7 @@ const Index = () => {
                     <Check className="h-4 w-4 text-white" />
                   </div>
                   <p className="text-gray-700">
-                    Vérifiez l'authenticité des diplômes en quelques clics
+                    Vérifiez l&apos;authenticité des diplômes en quelques clics
                   </p>
                 </div>
 
@@ -113,7 +113,9 @@ const Index = () => {
                       size="lg"
                       asChild
                     >
-                      <Link href="/pdf-to-word">Vérifier l'authenticité</Link>
+                      <Link href="/pdf-to-word">
+                        Vérifier l&apos;authenticité
+                      </Link>
                     </Button>
 
                     <p className="text-sm text-gray-500 mt-4">
@@ -135,8 +137,8 @@ const Index = () => {
               Services de gestion de diplômes
             </h2>
             <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              Choisissez parmi nos différents services d'authentification et de
-              génération
+              Choisissez parmi nos différents services d&apos;authentification
+              et de génération
             </p>
           </div>
 
@@ -232,7 +234,7 @@ const Index = () => {
               Authentifiez un diplôme dès maintenant
             </h2>
             <p className="text-lg mb-8 text-gray-600">
-              Notre système sécurisé vérifie l'authenticité des diplômes
+              Notre système sécurisé vérifie l&apos;authenticité des diplômes
               instantanément. Importez un document pour commencer le processus
               de vérification.
             </p>
@@ -255,7 +257,7 @@ const Index = () => {
               Pourquoi choisir DiplomaAuth
             </h2>
             <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              Notre solution d'authentification et de génération offre de
+              Notre solution d&apos;authentification et de génération offre de
               nombreux avantages
             </p>
           </div>
@@ -270,11 +272,11 @@ const Index = () => {
         <div className="container relative">
           <div className="max-w-2xl mx-auto text-center">
             <h2 className="text-3xl font-bold mb-4">
-              Commencez à gérer vos diplômes aujourd'hui
+              Commencez à gérer vos diplômes aujourd&apos;hui
             </h2>
             <p className="text-xl mb-8 text-gray-600">
-              Aucune inscription requise pour vérifier l'authenticité. Essayez
-              notre service maintenant !
+              Aucune inscription requise pour vérifier l&apos;authenticité.
+              Essayez notre service maintenant !
             </p>
             <Button size="lg" className="px-8" asChild>
               <Link href="/pdf-to-word">Démarrer</Link>

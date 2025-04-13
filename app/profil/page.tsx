@@ -128,7 +128,7 @@ const Profile = () => {
             <CardContent>
               <div className="space-y-4">
                 <div>
-                  <h3 className="font-semibold">Année d'obtention</h3>
+                  <h3 className="font-semibold">Année d&apos;obtention</h3>
                   <p>2023</p>
                 </div>
                 <div>
