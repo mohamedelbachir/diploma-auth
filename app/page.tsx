@@ -1,39 +1,289 @@
 import Link from "next/link"
+import { Check, LucideUpload } from "lucide-react"
 
-import { siteConfig } from "@/config/site"
-import { buttonVariants } from "@/components/ui/button"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent } from "@/components/ui/card"
+import FeatureCards from "@/components/FeatureCards"
+import Footer from "@/components/Footer"
+import FormatCards from "@/components/FormatCards"
+import Header from "@/components/Header"
 
-export default function IndexPage() {
+const Index = () => {
   return (
-    <section className="container grid items-center gap-6 pb-8 pt-6 md:py-10">
-      <div className="flex max-w-[980px] flex-col items-start gap-2">
-        <h1 className="text-3xl font-extrabold leading-tight tracking-tighter md:text-4xl">
-          Beautifully designed components <br className="hidden sm:inline" />
-          built with Radix UI and Tailwind CSS.
-        </h1>
-        <p className="max-w-[700px] text-lg text-muted-foreground">
-          Accessible and customizable components that you can copy and paste
-          into your apps. Free. Open Source. And Next.js 13 Ready.
-        </p>
-      </div>
-      <div className="flex gap-4">
-        <Link
-          href={siteConfig.links.docs}
-          target="_blank"
-          rel="noreferrer"
-          className={buttonVariants()}
-        >
-          Documentation
-        </Link>
-        <Link
-          target="_blank"
-          rel="noreferrer"
-          href={siteConfig.links.github}
-          className={buttonVariants({ variant: "outline" })}
-        >
-          GitHub
-        </Link>
-      </div>
-    </section>
+    <>
+      {/* Hero Section */}
+      <section className="py-10 md:py-16">
+        <div className="container">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+            {/* Left Side - Features */}
+            <div className="space-y-6">
+              <h1 className="text-4xl md:text-5xl font-bold text-gray-900">
+                DiplomaAuth
+              </h1>
+              <h2 className="text-xl md:text-2xl font-medium text-gray-800">
+                Authentification et génération de diplômes sécurisés
+              </h2>
+
+              <div className="space-y-4 pt-4">
+                <div className="flex items-start gap-3">
+                  <div className="rounded-full bg-primary p-1 mt-0.5">
+                    <Check className="h-4 w-4 text-white" />
+                  </div>
+                  <p className="text-gray-700">
+                    Générez des diplômes officiels avec signature numérique
+                  </p>
+                </div>
+
+                <div className="flex items-start gap-3">
+                  <div className="rounded-full bg-primary p-1 mt-0.5">
+                    <Check className="h-4 w-4 text-white" />
+                  </div>
+                  <p className="text-gray-700">
+                    Vérifiez l'authenticité des diplômes en quelques clics
+                  </p>
+                </div>
+
+                <div className="flex items-start gap-3">
+                  <div className="rounded-full bg-primary p-1 mt-0.5">
+                    <Check className="h-4 w-4 text-white" />
+                  </div>
+                  <p className="text-gray-700">
+                    Stockage sécurisé dans une base de données chiffrée
+                  </p>
+                </div>
+              </div>
+
+              <div className="text-sm text-gray-500 space-y-1 pt-4">
+                <p>+237 699 000 000 | Support technique 24/7</p>
+                <p>Assistance par email disponible tous les jours</p>
+              </div>
+
+              <div className="pt-2">
+                <div className="flex items-center gap-2">
+                  <div className="flex">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <svg
+                        key={star}
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="20"
+                        height="20"
+                        viewBox="0 0 24 24"
+                        fill="#2e7d32"
+                        stroke="none"
+                      >
+                        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                      </svg>
+                    ))}
+                  </div>
+                  <span className="text-sm text-gray-700">
+                    258 avis provenant de
+                  </span>
+                  <span className="font-semibold text-sm">
+                    universités partenaires
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Right Side - Upload Box */}
+            <div>
+              <Card className="border-dashed">
+                <CardContent className="p-6">
+                  <div className="text-center mb-6">
+                    <h3 className="text-xl font-semibold mb-4">
+                      Vérifiez ou générez un diplôme
+                    </h3>
+
+                    <div className="flex justify-center mb-6">
+                      <LucideUpload className="h-32" />
+                    </div>
+
+                    <p className="text-lg mb-3">
+                      Déposez votre fichier de diplôme ici
+                    </p>
+
+                    <div className="flex items-center justify-center mb-4">
+                      <div className="border-t border-gray-300 flex-grow"></div>
+                      <span className="px-3 text-gray-500">OU</span>
+                      <div className="border-t border-gray-300 flex-grow"></div>
+                    </div>
+
+                    <Button
+                      className="w-full bg-red-500 hover:bg-red-600 text-white py-4"
+                      size="lg"
+                      asChild
+                    >
+                      <Link href="/pdf-to-word">Vérifier l'authenticité</Link>
+                    </Button>
+
+                    <p className="text-sm text-gray-500 mt-4">
+                      Importez votre diplôme au format PDF (100 Mo max.)
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Formats Section */}
+      <section className="py-16 bg-gray-50">
+        <div className="container">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold mb-4">
+              Services de gestion de diplômes
+            </h2>
+            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+              Choisissez parmi nos différents services d'authentification et de
+              génération
+            </p>
+          </div>
+
+          <FormatCards />
+        </div>
+      </section>
+
+      {/* How it Works Section */}
+      <section className="py-16">
+        <div className="container">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            {/* Left side - Illustration */}
+            <div className="flex justify-center">
+              <img
+                src="/lovable-uploads/7f71fa4e-7b10-4ac8-8d46-73b97ae0832a.png"
+                alt="How it works"
+                className="max-w-full h-auto"
+              />
+            </div>
+
+            {/* Right side - Steps */}
+            <div>
+              <h2 className="text-3xl font-bold mb-6 text-gray-900">
+                Comment ça marche ?
+              </h2>
+              <p className="text-lg mb-8 text-gray-700">
+                Authentifiez ou générez des diplômes officiels en quelques
+                étapes simples :
+              </p>
+
+              <div className="space-y-8 relative">
+                {/* Step 1 */}
+                <div className="flex gap-4 relative">
+                  <div className="flex-shrink-0 relative z-10">
+                    <div className="w-8 h-8 rounded-full bg-blue-500 text-white flex items-center justify-center font-bold">
+                      1
+                    </div>
+                  </div>
+                  <div>
+                    <p className="text-lg font-medium text-gray-800">
+                      Importez le diplôme à vérifier ou sélectionnez le modèle à
+                      générer
+                    </p>
+                  </div>
+                </div>
+
+                {/* Dashed line from step 1 to 2 */}
+                <div className="absolute top-8 left-4 w-0 h-[calc(100%-32px)] border-l-2 border-dashed border-gray-300 z-0"></div>
+
+                {/* Step 2 */}
+                <div className="flex gap-4 relative">
+                  <div className="flex-shrink-0 relative z-10">
+                    <div className="w-8 h-8 rounded-full bg-blue-500 text-white flex items-center justify-center font-bold">
+                      2
+                    </div>
+                  </div>
+                  <div>
+                    <p className="text-lg font-medium text-gray-800">
+                      Renseignez les informations nécessaires et les signatures
+                      requises
+                    </p>
+                  </div>
+                </div>
+
+                {/* Dashed line from step 2 to 3 */}
+                <div className="absolute top-[calc(50%+8px)] left-4 w-0 h-[calc(50%-24px)] border-l-2 border-dashed border-gray-300 z-0"></div>
+
+                {/* Step 3 */}
+                <div className="flex gap-4 relative">
+                  <div className="flex-shrink-0 relative z-10">
+                    <div className="w-8 h-8 rounded-full bg-blue-500 text-white flex items-center justify-center font-bold">
+                      3
+                    </div>
+                  </div>
+                  <div>
+                    <p className="text-lg font-medium text-gray-800">
+                      Recevez le résultat de vérification ou votre diplôme
+                      officiel généré
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Modify PDF Now Section */}
+      <section className="py-16 bg-gray-50">
+        <div className="container">
+          <div className="max-w-3xl mx-auto text-center">
+            <h2 className="text-3xl font-bold mb-4">
+              Authentifiez un diplôme dès maintenant
+            </h2>
+            <p className="text-lg mb-8 text-gray-600">
+              Notre système sécurisé vérifie l'authenticité des diplômes
+              instantanément. Importez un document pour commencer le processus
+              de vérification.
+            </p>
+            <Button
+              size="lg"
+              className="px-8 py-6 text-lg bg-red-500 hover:bg-red-600 text-white"
+              asChild
+            >
+              <Link href="/pdf-to-word">Commencer</Link>
+            </Button>
+          </div>
+        </div>
+      </section>
+
+      {/* Features Section */}
+      <section className="py-16">
+        <div className="container">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold mb-4">
+              Pourquoi choisir DiplomaAuth
+            </h2>
+            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+              Notre solution d'authentification et de génération offre de
+              nombreux avantages
+            </p>
+          </div>
+
+          <FeatureCards />
+        </div>
+      </section>
+
+      {/* CTA Section */}
+      <section className="py-20 relative overflow-hidden">
+        <div className="absolute inset-0 gradient-blue opacity-10"></div>
+        <div className="container relative">
+          <div className="max-w-2xl mx-auto text-center">
+            <h2 className="text-3xl font-bold mb-4">
+              Commencez à gérer vos diplômes aujourd'hui
+            </h2>
+            <p className="text-xl mb-8 text-gray-600">
+              Aucune inscription requise pour vérifier l'authenticité. Essayez
+              notre service maintenant !
+            </p>
+            <Button size="lg" className="px-8" asChild>
+              <Link href="/pdf-to-word">Démarrer</Link>
+            </Button>
+          </div>
+        </div>
+      </section>
+    </>
   )
 }
+
+export default Index
