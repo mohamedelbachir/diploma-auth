@@ -25,7 +25,7 @@ const Header = () => {
             <div className="rounded-md bg-primary p-1">
               <span className="text-xl font-bold text-white">Dip</span>
             </div>
-            <span className="text-xl font-semibold">Auth</span>
+            <span className="text-xl font-semibold">AI</span>
           </Link>
         </div>
 

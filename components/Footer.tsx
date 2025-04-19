@@ -12,7 +12,7 @@ const Footer = () => {
               <div className="rounded-md bg-primary p-1">
                 <span className="text-xl font-bold text-white">Dip</span>
               </div>
-              <span className="text-xl font-semibold">Auth</span>
+              <span className="text-xl font-semibold">AI</span>
             </Link>
             <p className="mt-4 text-sm text-muted-foreground">
               Solution complète d&apos;authentification et de génération de
@@ -63,7 +63,7 @@ const Footer = () => {
             <ul className="mt-3 space-y-2">
               <li>
                 <Link
-                  href="/verification"
+                  href="/verify?type=verification"
                   className="text-sm text-muted-foreground hover:text-primary"
                 >
                   Vérification de diplôme
@@ -71,7 +71,7 @@ const Footer = () => {
               </li>
               <li>
                 <Link
-                  href="/generation"
+                  href="/verify?type=certification"
                   className="text-sm text-muted-foreground hover:text-primary"
                 >
                   Génération de diplôme
@@ -79,18 +79,10 @@ const Footer = () => {
               </li>
               <li>
                 <Link
-                  href="/certification"
+                  href="/profil"
                   className="text-sm text-muted-foreground hover:text-primary"
                 >
-                  Certification blockchain
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/archivage"
-                  className="text-sm text-muted-foreground hover:text-primary"
-                >
-                  Archivage sécurisé
+                  Mon profil
                 </Link>
               </li>
             </ul>
@@ -117,10 +109,10 @@ const Footer = () => {
               </li>
               <li>
                 <a
-                  href="mailto:support@diplomaauth.com"
+                  href="mailto:support@diplomaai.com"
                   className="text-sm text-muted-foreground hover:text-primary"
                 >
-                  support@diplomaauth.com
+                  support@diplomaai.com
                 </a>
               </li>
             </ul>
@@ -130,7 +122,7 @@ const Footer = () => {
         <div className="mt-8 border-t pt-8">
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <p className="text-sm text-muted-foreground">
-              © {currentYear} DiplomaAuth. Tous droits réservés.
+              © {currentYear} DiplomaAI. Tous droits réservés.
             </p>
             <div className="flex items-center gap-4">
               <Link

@@ -18,7 +18,7 @@ const Index = () => {
             {/* Left Side - Features */}
             <div className="space-y-6">
               <h1 className="text-4xl md:text-5xl font-bold text-gray-900">
-                DiplomaAuth
+                DiplomaAI
               </h1>
               <h2 className="text-xl md:text-2xl font-medium text-gray-800">
                 Authentification et génération de diplômes sécurisés
@@ -113,7 +113,7 @@ const Index = () => {
                       size="lg"
                       asChild
                     >
-                      <Link href="/pdf-to-word">
+                      <Link href="/verify?type=verification">
                         Vérifier l&apos;authenticité
                       </Link>
                     </Button>
