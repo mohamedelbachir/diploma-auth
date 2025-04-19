@@ -250,7 +250,7 @@ const Index = () => {
         <div className="container">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold mb-4">
-              Pourquoi choisir DiplomaAuth
+              Pourquoi choisir DiplomaAI
             </h2>
             <p className="text-xl text-gray-600 max-w-2xl mx-auto">
               Notre solution d&apos;authentification et de génération offre de

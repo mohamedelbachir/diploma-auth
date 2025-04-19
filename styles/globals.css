@@ -97,3 +97,9 @@
 .container {
   @apply px-4 sm:px-6 lg:px-8;
 }
+
+@layer utilities {
+  .gradient-blue {
+    @apply bg-gradient-to-r from-pdf-blue-dark to-pdf-blue;
+  }
+}
