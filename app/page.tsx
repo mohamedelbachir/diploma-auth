@@ -169,15 +169,16 @@ const Index = () => {
                 étapes simples :
               </p>
 
-              <div className="space-y-8 relative">
+              <div className="relative flex flex-col">
                 {/* Step 1 */}
-                <div className="flex gap-4 relative">
-                  <div className="flex-shrink-0 relative z-10">
-                    <div className="w-8 h-8 rounded-full bg-blue-500 text-white flex items-center justify-center font-bold">
+                <div className="flex mb-6">
+                  <div className="relative flex flex-col items-center">
+                    <div className="flex items-center justify-center w-8 h-8 rounded-full bg-blue-500 text-white font-bold text-lg z-10">
                       1
                     </div>
+                    <div className="absolute top-8 bottom-0 w-[2px] border-l-2 border-dashed border-blue-300 h-full"></div>
                   </div>
-                  <div>
+                  <div className="ml-4 pt-1">
                     <p className="text-lg font-medium text-gray-800">
                       Importez le diplôme à vérifier ou sélectionnez le modèle à
                       générer
@@ -185,17 +186,15 @@ const Index = () => {
                   </div>
                 </div>
 
-                {/* Dashed line from step 1 to 2 */}
-                <div className="absolute top-8 left-4 w-0 h-[calc(100%-32px)] border-l-2 border-dashed border-gray-300 z-0"></div>
-
                 {/* Step 2 */}
-                <div className="flex gap-4 relative">
-                  <div className="flex-shrink-0 relative z-10">
-                    <div className="w-8 h-8 rounded-full bg-blue-500 text-white flex items-center justify-center font-bold">
+                <div className="flex mb-6">
+                  <div className="relative flex flex-col items-center">
+                    <div className="flex items-center justify-center w-8 h-8 rounded-full bg-blue-500 text-white font-bold text-lg z-10">
                       2
                     </div>
+                    <div className="absolute top-8 bottom-0 w-[2px] border-l-2 border-dashed border-blue-300 h-full"></div>
                   </div>
-                  <div>
+                  <div className="ml-4 pt-1">
                     <p className="text-lg font-medium text-gray-800">
                       Renseignez les informations nécessaires et les signatures
                       requises
@@ -203,17 +202,14 @@ const Index = () => {
                   </div>
                 </div>
 
-                {/* Dashed line from step 2 to 3 */}
-                <div className="absolute top-[calc(50%+8px)] left-4 w-0 h-[calc(50%-24px)] border-l-2 border-dashed border-gray-300 z-0"></div>
-
                 {/* Step 3 */}
-                <div className="flex gap-4 relative">
-                  <div className="flex-shrink-0 relative z-10">
-                    <div className="w-8 h-8 rounded-full bg-blue-500 text-white flex items-center justify-center font-bold">
+                <div className="flex">
+                  <div className="flex flex-col items-center">
+                    <div className="flex items-center justify-center w-8 h-8 rounded-full bg-blue-500 text-white font-bold text-lg z-10">
                       3
                     </div>
                   </div>
-                  <div>
+                  <div className="ml-4 pt-1">
                     <p className="text-lg font-medium text-gray-800">
                       Recevez le résultat de vérification ou votre diplôme
                       officiel généré
