@@ -34,7 +34,7 @@ const [diplomaData, setDiplomaData] = useState(null);
     setLoading(true);
     setError(null);
     setQrCode("");
-     try {
+     /*try {
     const formData = new FormData();
     formData.append('pdf', file);
 
@@ -54,7 +54,7 @@ const [diplomaData, setDiplomaData] = useState(null);
   } catch (err) {
     console.error('Error extracting text:', err);
     setError(err.message);
-  }
+  }*/
     try {
       // Create FormData to send the file
       const formData = new FormData();

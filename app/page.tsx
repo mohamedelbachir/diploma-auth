@@ -1,13 +1,13 @@
 import Link from "next/link"
 import { Check, LucideUpload } from "lucide-react"
-
+import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import FeatureCards from "@/components/FeatureCards"
 import Footer from "@/components/Footer"
 import FormatCards from "@/components/FormatCards"
 import Header from "@/components/Header"
-
+import HowImage from "@/assets/how.jpg"
 const Index = () => {
   return (
     <>
@@ -94,7 +94,7 @@ const Index = () => {
                       Vérifiez ou générez un diplôme
                     </h3>
 
-                    <div className="flex justify-center mb-6">
+                    <div className="flex justify-center mb-6 p-5 rounded-md bg-gray-100">
                       <LucideUpload className="h-32" />
                     </div>
 
@@ -152,8 +152,8 @@ const Index = () => {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             {/* Left side - Illustration */}
             <div className="flex justify-center">
-              <img
-                src="/lovable-uploads/7f71fa4e-7b10-4ac8-8d46-73b97ae0832a.png"
+              <Image
+                src={HowImage}
                 alt="How it works"
                 className="max-w-full h-auto"
               />
