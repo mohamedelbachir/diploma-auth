@@ -1,11 +1,28 @@
 "use client"
 
 import type React from "react"
-
-import { useState, useEffect, useRef } from "react"
+import { useEffect, useRef, useState } from "react"
+import { useSearchParams } from "next/navigation"
 import { motion, useAnimation } from "framer-motion"
-import { FileUp, Loader2, CheckCircle, AlertCircle, Trash2, FileText } from "lucide-react"
+import {
+  AlertCircle,
+  CheckCircle,
+  FileText,
+  FileUp,
+  Loader2,
+  RefreshCw,
+  Trash2,
+} from "lucide-react"
+
 import { cn } from "@/lib/utils"
+import { useIsMobile } from "@/hooks/use-mobile"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 
 export interface DocumentScannerProps {
   /**
@@ -53,6 +70,7 @@ export interface DocumentScannerProps {
 }
 
 type ScanStatus = "idle" | "scanning" | "processing" | "complete" | "error"
+type DocumentType = "verification" | "certification"
 type FilePreview = {
   file: File
   url: string
@@ -79,7 +97,11 @@ export function DocumentScanner({
   const fileInputRef = useRef<HTMLInputElement>(null)
   const previewContainerRef = useRef<HTMLDivElement>(null)
   const scannerControls = useAnimation()
-
+  const searchParams = useSearchParams()
+  const type = searchParams.get("type")
+  const [documentType, setDocumentType] = useState<DocumentType>(
+    (type as DocumentType) || "verification"
+  )
   // Load PDF.js library dynamically
   useEffect(() => {
     const loadPdfJs = async () => {
@@ -89,7 +111,8 @@ export function DocumentScanner({
       try {
         // Create script element for PDF.js
         const script = document.createElement("script")
-        script.src = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"
+        script.src =
+          "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"
         script.async = true
         document.body.appendChild(script)
 
@@ -130,7 +153,11 @@ export function DocumentScanner({
 
     // Validate file size
     if (selectedFile.size > maxFileSize) {
-      setError(`File is too large. Maximum size is ${formatFileSize(maxFileSize)}.`)
+      setError(
+        `Le fichier est trop lourd. La taille maximale est de ${formatFileSize(
+          maxFileSize
+        )}.`
+      )
       return
     }
 
@@ -169,37 +196,44 @@ export function DocumentScanner({
           setTimeout(() => startScan(), 500)
         }
       } else {
-        setError("Unsupported file type. Please upload an image or PDF file.")
+        setError(
+          "Format de fichier non supporté. Veuillez télécharger une image ou un fichier PDF."
+        )
       }
     } catch (err) {
       console.error("Error handling file:", err)
-      setError("Failed to process file. Please try again.")
+      setError("Erreur lors du traitement du fichier. Veuillez réessayer.")
     }
   }
 
   // Render PDF preview
   const renderPdfPreview = async (file: File, pdfUrl: string) => {
     if (!window.pdfjsLib) {
-      setError("PDF.js library not loaded. Please refresh and try again.")
+      setError(
+        "La bibliothèque PDF.js n'est pas chargée. Veuillez actualiser et réessayer."
+      )
       return
     }
 
     try {
-      setProcessingStatus("Loading PDF document...")
+      setProcessingStatus("Chargement du document PDF...")
 
       // Read the file
       const fileReader = new FileReader()
-      const pdfArrayBuffer = await new Promise<ArrayBuffer>((resolve, reject) => {
-        fileReader.onload = (e) => resolve(e.target?.result as ArrayBuffer)
-        fileReader.onerror = reject
-        fileReader.readAsArrayBuffer(file)
-      })
+      const pdfArrayBuffer = await new Promise<ArrayBuffer>(
+        (resolve, reject) => {
+          fileReader.onload = (e) => resolve(e.target?.result as ArrayBuffer)
+          fileReader.onerror = reject
+          fileReader.readAsArrayBuffer(file)
+        }
+      )
 
       // Load the PDF document
-      const pdf = await window.pdfjsLib.getDocument({ data: pdfArrayBuffer }).promise
+      const pdf = await window.pdfjsLib.getDocument({ data: pdfArrayBuffer })
+        .promise
 
       // Process first page only
-      setProcessingStatus("Rendering page 1...")
+      setProcessingStatus("Rendu de la page 1...")
       const page = await pdf.getPage(1)
 
       // Render the page on a canvas
@@ -228,7 +262,9 @@ export function DocumentScanner({
       setProcessingStatus("")
     } catch (err) {
       console.error("Error rendering PDF:", err)
-      setError("Failed to render PDF preview. The file may be corrupted or password-protected.")
+      setError(
+        "Failed to render PDF preview. The file may be corrupted or password-protected."
+      )
     }
   }
 
@@ -269,29 +305,38 @@ export function DocumentScanner({
 
   // Start scanning process
   const startScan = async () => {
+    // Prevent start if not idle or no preview
     if (status !== "idle" || !preview) return
 
+    // Set status and reset scanner position immediately
     setStatus("scanning")
+    scannerControls.set({ top: "0%" })
 
-    // Reset scanner position
-    await scannerControls.start({ top: "0%" })
+    // Allow React to render and mount the scanner element
+    await new Promise((resolve) => setTimeout(resolve, 0))
 
-    // Start scanning animation
-    await scannerControls.start({
-      top: "100%",
-      transition: { duration: scanDuration, ease: "linear" },
+    // Start scanning animation loop
+    scannerControls.start({
+      top: ["0%", "100%"],
+      transition: {
+        duration: scanDuration,
+        ease: "linear",
+        repeat: Infinity,
+        repeatType: "loop",
+      },
     })
 
-    // Simulate processing
-    setStatus("processing")
-
-    // Simulate backend processing
-    setTimeout(() => {
-      setStatus("complete")
-      if (onScanComplete) {
-        onScanComplete(preview.file)
-      }
-    }, 1500)
+    // Wait for scan completion (8s) then reset and complete
+    await new Promise((resolve) =>
+      setTimeout(() => {
+        console.log("complete")
+        setStatus("complete")
+        scannerControls.set({ top: "0%" })
+        scannerControls.stop()
+        if (onScanComplete) onScanComplete(preview.file)
+        resolve(true)
+      }, 8000)
+    )
   }
 
   // Reset the component
@@ -314,17 +359,19 @@ export function DocumentScanner({
       }
     }
   }, [preview])
-
+  const isMobile = useIsMobile()
   return (
     <div className={cn("flex flex-col items-center gap-4", className)}>
       <div
         ref={previewContainerRef}
         className={cn(
           "relative overflow-hidden rounded-md border shadow-md bg-white",
-          dragActive ? "border-green-500 ring-2 ring-green-200" : "border-gray-300",
-          status === "error" && "border-red-500",
+          dragActive
+            ? "border-green-500 ring-2 ring-green-200"
+            : "border-gray-300",
+          status === "error" && "border-red-500"
         )}
-        style={{ width, height }}
+        style={{ width, height: isMobile ? "300px" : height }}
         onDragEnter={handleDrag}
         onDragLeave={handleDrag}
         onDragOver={handleDrag}
@@ -341,14 +388,18 @@ export function DocumentScanner({
               />
             ) : preview.pdfCanvas ? (
               <img
-                src={preview.pdfCanvas.toDataURL("image/png") || "/placeholder.svg"}
+                src={
+                  preview.pdfCanvas.toDataURL("image/png") || "/placeholder.svg"
+                }
                 alt="PDF preview"
                 className="max-w-full max-h-full object-contain"
               />
             ) : (
               <div className="flex flex-col items-center justify-center">
                 <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
-                <p className="mt-2 text-sm text-gray-500">{processingStatus || "Loading preview..."}</p>
+                <p className="mt-2 text-sm text-gray-500">
+                  {processingStatus || "Loading preview..."}
+                </p>
               </div>
             )}
           </div>
@@ -361,17 +412,22 @@ export function DocumentScanner({
         ) : (
           <div className="w-full h-full flex flex-col items-center justify-center p-6 text-center">
             <FileUp className="w-12 h-12 mb-4 text-gray-400" />
-            <h3 className="text-lg font-medium text-gray-700">Drag & Drop</h3>
-            <p className="text-sm text-gray-500 mb-4">Drop your document here or click to browse</p>
+            <h3 className="text-lg font-medium text-gray-700">
+              Glisser et lâcher
+            </h3>
+            <p className="text-sm text-gray-500 mb-4">
+              Glissez votre document ici ou cliquez pour parcourir
+            </p>
             <button
               type="button"
               onClick={handleButtonClick}
               className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-md text-sm font-medium transition-colors"
             >
-              Select File
+              Parcourir
             </button>
             <p className="mt-4 text-xs text-gray-400">
-              Supported formats: JPEG, PNG, GIF, PDF (Max {formatFileSize(maxFileSize)})
+              Formats supportés: JPEG, PNG, GIF, PDF (Max{" "}
+              {formatFileSize(maxFileSize)})
             </p>
           </div>
         )}
@@ -408,7 +464,7 @@ export function DocumentScanner({
           <div className="absolute inset-0 bg-black/10 flex items-center justify-center">
             <div className="bg-white p-4 rounded-lg shadow-lg flex flex-col items-center">
               <Loader2 className="h-8 w-8 animate-spin text-green-500 mb-2" />
-              <p className="text-sm font-medium">Processing document...</p>
+              <p className="text-sm font-medium">Traitement du document...</p>
             </div>
           </div>
         )}
@@ -418,7 +474,9 @@ export function DocumentScanner({
           <div className="absolute inset-0 bg-black/10 flex items-center justify-center">
             <div className="bg-white p-4 rounded-lg shadow-lg flex flex-col items-center">
               <CheckCircle className="h-8 w-8 text-green-500 mb-2" />
-              <p className="text-sm font-medium">Document processed successfully!</p>
+              <p className="text-sm font-medium">
+                Document traité avec succès!
+              </p>
             </div>
           </div>
         )}
@@ -430,7 +488,9 @@ export function DocumentScanner({
               <FileText className="h-4 w-4 mr-2 flex-shrink-0 text-gray-500" />
               <span className="truncate">{preview.file.name}</span>
             </div>
-            <span className="text-gray-500 text-xs">{formatFileSize(preview.file.size)}</span>
+            <span className="text-gray-500 text-xs">
+              {formatFileSize(preview.file.size)}
+            </span>
           </div>
         )}
 
@@ -441,47 +501,69 @@ export function DocumentScanner({
             <span>{error}</span>
           </div>
         )}
+
+        {preview && (status === "idle" || status === "complete") && (
+          <button
+            onClick={resetScanner}
+            className="absolute top-2 right-2 p-2 bg-white rounded-full shadow-md hover:bg-gray-100"
+          >
+            <Trash2 className="h-5 w-5 text-gray-600" />
+          </button>
+        )}
       </div>
 
       {/* Action buttons */}
-      <div className="flex gap-3">
+      <div className="flex flex-col gap-3 w-full max-w-xs">
         {preview && status === "idle" && (
-          <button
-            onClick={startScan}
-            className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-md font-medium transition-colors"
-          >
-            Start Scanning
-          </button>
+          <>
+            <Select
+              value={documentType}
+              onValueChange={(value: DocumentType) => setDocumentType(value)}
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Select document type" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="verification">Vérification</SelectItem>
+                <SelectItem value="certification">Certification</SelectItem>
+              </SelectContent>
+            </Select>
+            <button
+              onClick={startScan}
+              className="w-full px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-md font-medium transition-colors"
+            >
+              Commencer
+            </button>
+          </>
         )}
 
         {status === "scanning" && (
-          <button disabled className="px-4 py-2 bg-gray-300 text-gray-600 rounded-md font-medium cursor-not-allowed">
-            Scanning...
+          <button
+            disabled
+            className="w-full flex items-center justify-center px-4 py-2 bg-gray-300 text-gray-600 rounded-md font-medium cursor-not-allowed"
+          >
+            <Loader2 className="h-4 w-4 animate-spin mr-2" />
+            En cours de traitement...
           </button>
         )}
 
         {status === "processing" && (
-          <button disabled className="px-4 py-2 bg-gray-300 text-gray-600 rounded-md font-medium cursor-not-allowed">
-            Processing...
+          <button
+            disabled
+            className="w-full flex items-center justify-center px-4 py-2 bg-gray-300 text-gray-600 rounded-md font-medium cursor-not-allowed"
+          >
+            <Loader2 className="h-4 w-4 animate-spin mr-2" />
+            En cours de traitement...
           </button>
         )}
 
         {status === "complete" && (
           <button
             onClick={resetScanner}
-            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md font-medium transition-colors"
+            className="w-full flex items-center justify-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md font-medium transition-colors"
           >
-            Scan Another Document
-          </button>
-        )}
-
-        {preview && (
-          <button
-            onClick={resetScanner}
-            className="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-md font-medium transition-colors flex items-center"
-          >
-            <Trash2 className="h-4 w-4 mr-2" />
-            Remove
+            <RefreshCw className="h-4 w-4 mr-2 text-white" />
+            Scanner un autre document
           </button>
         )}
       </div>

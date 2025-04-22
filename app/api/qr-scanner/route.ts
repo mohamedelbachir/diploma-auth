@@ -1,5 +1,8 @@
 // app/api/qr-scanner/route.ts
 
+import '@ungap/with-resolvers';
+//@ts-ignore
+await import('pdfjs-dist/build/pdf.worker.min.mjs');
 import { NextResponse } from 'next/server';
 import { writeFile } from 'fs/promises';
 import { join } from 'path';
