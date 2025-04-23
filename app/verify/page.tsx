@@ -40,10 +40,10 @@ export default function Home() {
             <span className="text-2xl font-bold text-primary">2</span>
           </div>
           <h3 className="font-semibold mb-2">
-            Entrez les informations de l'étudiant et les détails du diplôme
+            Entrez les informations de l&apos;étudiant et les détails du diplôme
           </h3>
           <p className="text-sm text-muted-foreground">
-            Entrez les informations de l'étudiant et les détails du diplôme
+            Entrez les informations de l&apos;étudiant et les détails du diplôme
           </p>
         </div>
 
@@ -52,10 +52,10 @@ export default function Home() {
             <span className="text-2xl font-bold text-primary">3</span>
           </div>
           <h3 className="font-semibold mb-2">
-            Consultez et téléchargez le rapport d'authenticité
+            Consultez et téléchargez le rapport d&apos;authenticité
           </h3>
           <p className="text-sm text-muted-foreground">
-            Consultez et téléchargez le rapport d'authenticité
+            Consultez et téléchargez le rapport d&apos;authenticité
           </p>
         </div>
       </div>

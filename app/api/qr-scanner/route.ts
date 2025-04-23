@@ -1,8 +1,7 @@
-// app/api/qr-scanner/route.ts
+/// @ts-ignore
+import * as pdfjsLib from "pdfjs-dist/build/pdf";
+pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
 
-import '@ungap/with-resolvers';
-//@ts-ignore
-await import('pdfjs-dist/build/pdf.worker.min.mjs');
 import { NextResponse } from 'next/server';
 import { writeFile } from 'fs/promises';
 import { join } from 'path';

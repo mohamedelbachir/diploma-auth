@@ -11,7 +11,7 @@ export async function POST(req: NextRequest) {
   const file = formData.get('pdf') as File;
 
   if (!file || file.type !== 'application/pdf') {
-     return NextResponse.json({ success: false, error: 'Invalid PDF file' }, { status: 400 });
+    return NextResponse.json({ success: false, error: 'Invalid PDF file' }, { status: 400 });
   }
 
   const uploadedFiles = formData.get('pdf') as File;
@@ -21,7 +21,7 @@ export async function POST(req: NextRequest) {
   if (uploadedFiles) {
     const uploadedFile = uploadedFiles;
     console.log('Uploaded file:', uploadedFile);
-    
+
     // Check if uploadedFile is of type File
     if (uploadedFile instanceof File) {
       // Generate a unique filename
@@ -31,7 +31,7 @@ export async function POST(req: NextRequest) {
       //const tempFilePath = `/tmp/${fileName}.pdf`;
       const tempFilePath = join(tmpdir(), `${fileName}.pdf`);
 
-     
+
       // Convert ArrayBuffer to Buffer
       const fileBuffer = Buffer.from(await uploadedFile.arrayBuffer());
 
@@ -69,7 +69,7 @@ export async function POST(req: NextRequest) {
     console.log('No files found.');
   }
 
-  const response = new NextResponse(parsedText);
+  const response = NextResponse.json(extractDiplomaData(parsedText));
   response.headers.set('FileName', fileName);
   return response;
 }
