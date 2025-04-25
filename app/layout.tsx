@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils"
 import { Toaster } from "@/components/ui/toaster"
 import Footer from "@/components/Footer"
 import Header from "@/components/Header"
+import ButtonScan from "@/components/buttonScan"
 import { SiteHeader } from "@/components/site-header"
 import { TailwindIndicator } from "@/components/tailwind-indicator"
 import { ThemeProvider } from "@/components/theme-provider"
@@ -59,6 +60,7 @@ export default async function RootLayout({ children }: RootLayoutProps) {
                 <main className="flex-1">{children}</main>
                 <Footer />
                 <TailwindIndicator />
+                <ButtonScan />
               </ThemeProvider>
               <Toaster />
             </div>
