@@ -77,7 +77,7 @@ const diplomaSchema: OpenAI.Chat.Completions.ChatCompletionTool = {
 };
 
 
-export async function extractDiplomaInfoFromText(rawText: string): Promise<any> { // Changed function name and added input parameter
+async function extractDiplomaInfoFromText(rawText: string): Promise<any> { // Changed function name and added input parameter
 
     if (!token) {
         throw new Error("OPENAI_API_KEY is not set in environment variables.");
@@ -149,7 +149,3 @@ export async function POST(req: NextRequest) {
     }
 }
 
-// Remove the example main() call as this function will likely be imported and used elsewhere
-// main().catch((err) => {
-//   console.error("The sample encountered an error:", err);
-// });
