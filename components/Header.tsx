@@ -2,9 +2,11 @@
 
 import { useState } from "react"
 import Link from "next/link"
+import { usePathname, useRouter, useSearchParams } from "next/navigation"
 import { useSession } from "@/providers/SessionProvider"
 import { LogOut, Menu, User, X } from "lucide-react"
 
+import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { logout } from "@/app/actions"
@@ -18,6 +20,52 @@ const Links = [
 const Header = () => {
   const [open, setOpen] = useState(false)
   const { user } = useSession()
+  const pathname = usePathname()
+  const searchParams = useSearchParams()
+
+  const links = () => {
+    return (
+      <>
+        {Links.map((link) => {
+          let isActive = false
+
+          // Extract base path and query params from link.href
+          const [linkPath, linkQuery] = link.href.split("?")
+
+          if (linkPath === "/") {
+            // For home route, only active when pathname is exactly "/"
+            isActive = pathname === "/"
+          } else if (linkPath === pathname) {
+            // For other routes, check if base path matches
+            // If link has query parameters, check those too
+            if (linkQuery) {
+              const linkParams = new URLSearchParams(linkQuery)
+              const currentType = searchParams.get("type")
+              const linkType = linkParams.get("type")
+
+              isActive = currentType === linkType
+            } else {
+              isActive = true
+            }
+          }
+
+          return (
+            <Link
+              key={link.href}
+              href={link.href}
+              onClick={() => setOpen(false)}
+              className={cn(
+                isActive && "text-primary",
+                "text-sm font-medium hover:text-primary"
+              )}
+            >
+              {link.label}
+            </Link>
+          )
+        })}
+      </>
+    )
+  }
   console.log(user)
   const handleLogout = async () => {
     await logout()
@@ -35,17 +83,7 @@ const Header = () => {
           </Link>
         </div>
 
-        <nav className="hidden md:flex items-center gap-6">
-          {Links.map((link) => (
-            <Link
-              key={link.href}
-              href={link.href}
-              className="text-sm font-medium hover:text-primary"
-            >
-              {link.label}
-            </Link>
-          ))}
-        </nav>
+        <nav className="hidden md:flex items-center gap-6">{links()}</nav>
 
         <div className="flex items-center gap-2">
           {user ? (
@@ -82,48 +120,36 @@ const Header = () => {
               </Button>
             </SheetTrigger>
             <SheetContent side="right" className="pt-10">
-              <nav className="flex flex-col gap-4">
-                {Links.map((link) => (
-                  <Link
-                    key={link.href}
-                    href={link.href}
-                    className="text-sm font-medium hover:text-primary"
+              <nav className="flex flex-col gap-4">{links()}</nav>
+              {user ? (
+                <>
+                  <Button
+                    className="w-full justify-start"
+                    asChild
                     onClick={() => setOpen(false)}
                   >
-                    {link.label}
-                  </Link>
-                ))}
-
-                {user ? (
-                  <>
-                    <Button
-                      className="w-full justify-start"
-                      asChild
-                      onClick={() => setOpen(false)}
-                    >
-                      <Link href="/profil">Profil</Link>
-                    </Button>
-                    <Button
-                      className="w-full justify-start"
-                      asChild
-                      onClick={handleLogout}
-                      variant={"outline"}
-                    >
-                      <Link href="/logout">Se déconnecter</Link>
-                    </Button>
-                  </>
-                ) : (
-                  <div className="mt-4 space-y-2">
-                    <Button
-                      className="w-full justify-start"
-                      asChild
-                      onClick={() => setOpen(false)}
-                    >
-                      <Link href="/login">Se connecter</Link>
-                    </Button>
-                  </div>
-                )}
-              </nav>
+                    <Link href="/profil">Profil</Link>
+                  </Button>
+                  <Button
+                    className="w-full justify-start"
+                    asChild
+                    onClick={handleLogout}
+                    variant={"outline"}
+                  >
+                    <Link href="/logout">Se déconnecter</Link>
+                  </Button>
+                </>
+              ) : (
+                <div className="mt-4 space-y-2">
+                  <Button
+                    className="w-full justify-start"
+                    asChild
+                    onClick={() => setOpen(false)}
+                  >
+                    <Link href="/login">Se connecter</Link>
+                  </Button>
+                </div>
+              )}
             </SheetContent>
           </Sheet>
         </div>
