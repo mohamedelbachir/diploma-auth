@@ -9,6 +9,12 @@ import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { logout } from "@/app/actions"
 
+const Links = [
+  { href: "/", label: "Accueil" },
+  { href: "/verify?type=verification", label: "Vérifier" },
+  { href: "/verify?type=certification", label: "Certifier" },
+  { href: "/diploma?type=scan", label: "Scanner" },
+]
 const Header = () => {
   const [open, setOpen] = useState(false)
   const { user } = useSession()
@@ -30,21 +36,15 @@ const Header = () => {
         </div>
 
         <nav className="hidden md:flex items-center gap-6">
-          <Link href="/" className="text-sm font-medium hover:text-primary">
-            Accueil
-          </Link>
-          <Link
-            href="/verify?type=verification"
-            className="text-sm font-medium hover:text-primary"
-          >
-            Vérifier
-          </Link>
-          <Link
-            href="/verify?type=certification"
-            className="text-sm font-medium hover:text-primary"
-          >
-            Certifier
-          </Link>
+          {Links.map((link) => (
+            <Link
+              key={link.href}
+              href={link.href}
+              className="text-sm font-medium hover:text-primary"
+            >
+              {link.label}
+            </Link>
+          ))}
         </nav>
 
         <div className="flex items-center gap-2">
@@ -83,27 +83,16 @@ const Header = () => {
             </SheetTrigger>
             <SheetContent side="right" className="pt-10">
               <nav className="flex flex-col gap-4">
-                <Link
-                  href="/"
-                  className="text-sm font-medium hover:text-primary"
-                  onClick={() => setOpen(false)}
-                >
-                  Accueil
-                </Link>
-                <Link
-                  href="/verify?type=verification"
-                  className="text-sm font-medium hover:text-primary"
-                  onClick={() => setOpen(false)}
-                >
-                  Vérifier
-                </Link>
-                <Link
-                  href="/verify?type=certification"
-                  className="text-sm font-medium hover:text-primary"
-                  onClick={() => setOpen(false)}
-                >
-                  Certifier
-                </Link>
+                {Links.map((link) => (
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    className="text-sm font-medium hover:text-primary"
+                    onClick={() => setOpen(false)}
+                  >
+                    {link.label}
+                  </Link>
+                ))}
 
                 {user ? (
                   <>

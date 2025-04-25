@@ -13,7 +13,9 @@ import {
   RefreshCw,
   Trash2,
 } from "lucide-react"
+import { createWorker } from "tesseract.js"
 
+import { pdfToImg } from "@/lib/pdf-to-img"
 import { cn } from "@/lib/utils"
 import { useIsMobile } from "@/hooks/use-mobile"
 import {
@@ -62,7 +64,7 @@ export interface DocumentScannerProps {
   /**
    * Callback when scanning is complete
    */
-  onScanComplete?: (file: File) => void
+  onScanComplete?: (file: File, extractedText: string[]) => void
   /**
    * Additional CSS class names
    */
@@ -94,6 +96,7 @@ export function DocumentScanner({
   const [dragActive, setDragActive] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [processingStatus, setProcessingStatus] = useState("")
+  const [extractedText, setExtractedText] = useState<string[]>([])
   const fileInputRef = useRef<HTMLInputElement>(null)
   const previewContainerRef = useRef<HTMLDivElement>(null)
   const scannerControls = useAnimation()
@@ -102,8 +105,28 @@ export function DocumentScanner({
   const [documentType, setDocumentType] = useState<DocumentType>(
     (type as DocumentType) || "verification"
   )
+  const [isLoading, setIsLoading] = useState(true)
+  const workerRef = useRef<Tesseract.Worker | null>(null)
+
   // Load PDF.js library dynamically
   useEffect(() => {
+    const loadTesseract = async () => {
+      workerRef.current = await createWorker({
+        logger: (m) => {
+          console.log(m)
+          if (m.status === "recognizing text") {
+            setProcessingStatus(
+              `Reconnaissance du texte... ${Math.floor(m.progress * 100)}%`
+            )
+          }
+        },
+      })
+      await workerRef.current.load()
+      await workerRef.current.loadLanguage("fra")
+      await workerRef.current.initialize("fra")
+    }
+
+    //loadTesseract()
     const loadPdfJs = async () => {
       // Skip if already loaded
       if (window.pdfjsLib) return
@@ -131,7 +154,10 @@ export function DocumentScanner({
       }
     }
 
-    loadPdfJs()
+    //loadPdfJs()
+    Promise.all([loadTesseract(), loadPdfJs()]).then(() => {
+      setIsLoading(false)
+    })
   }, [])
 
   // Handle file selection
@@ -140,6 +166,7 @@ export function DocumentScanner({
     setError(null)
     setStatus("idle")
     setProcessingStatus("")
+    setExtractedText([])
 
     // Clear previous preview
     if (preview?.url) {
@@ -303,40 +330,93 @@ export function DocumentScanner({
     fileInputRef.current?.click()
   }
 
+  // Extract text from image using Tesseract.js
+  const extractTextFromImage = async (
+    imageSource: string | Blob
+  ): Promise<string> => {
+    setProcessingStatus("Extraction du texte...")
+
+    try {
+      if (!workerRef.current) {
+        throw new Error("Tesseract worker not initialized")
+      }
+
+      const {
+        data: { text },
+      } = await workerRef.current.recognize(imageSource)
+
+      return text
+    } catch (error) {
+      console.error("Error extracting text from image:", error)
+      throw new Error("Échec de l'extraction du texte de l'image")
+    }
+  }
+
+  // Process PDF file
+  const processPdfFile = async (file: File): Promise<string[]> => {
+    setProcessingStatus("Conversion du PDF en images...")
+
+    try {
+      const images = await pdfToImg(file)
+      const pages = []
+
+      for (let i = 0; i < images.length; i++) {
+        setProcessingStatus(
+          `Traitement de la page ${i + 1}/${images.length}...`
+        )
+        const image = images[i]
+
+        const text = await extractTextFromImage(image)
+        pages.push(text)
+      }
+
+      return pages
+    } catch (error) {
+      console.error("Error processing PDF file:", error)
+      throw new Error("Échec du traitement du fichier PDF")
+    }
+  }
+
   // Start scanning process
   const startScan = async () => {
     // Prevent start if not idle or no preview
     if (status !== "idle" || !preview) return
 
-    // Set status and reset scanner position immediately
-    setStatus("scanning")
-    scannerControls.set({ top: "0%" })
+    try {
+      setStatus("processing")
+      // Reset scanner position
 
-    // Allow React to render and mount the scanner element
-    await new Promise((resolve) => setTimeout(resolve, 0))
+      let textResults: string[] = []
 
-    // Start scanning animation loop
-    scannerControls.start({
-      top: ["0%", "100%"],
-      transition: {
-        duration: scanDuration,
-        ease: "linear",
-        repeat: Infinity,
-        repeatType: "loop",
-      },
-    })
+      if (preview.type === "image") {
+        // Process image file
+        const text = await extractTextFromImage(preview.file)
+        textResults = [text]
+      } else if (preview.type === "pdf") {
+        // Process PDF file
+        textResults = await processPdfFile(preview.file)
+      }
 
-    // Wait for scan completion (8s) then reset and complete
-    await new Promise((resolve) =>
-      setTimeout(() => {
-        console.log("complete")
-        setStatus("complete")
-        scannerControls.set({ top: "0%" })
-        scannerControls.stop()
-        if (onScanComplete) onScanComplete(preview.file)
-        resolve(true)
-      }, 8000)
-    )
+      // Update state with extracted text
+      setExtractedText(textResults)
+      console.log(textResults)
+
+      // Complete scan
+      setStatus("complete")
+      // scannerControls.set({ top: "0%" })
+      // scannerControls.stop()
+
+      // Call callback if provided
+      if (onScanComplete) {
+        onScanComplete(preview.file, textResults)
+      }
+    } catch (err) {
+      console.error("Error during scanning process:", err)
+      setError(
+        "Une erreur s'est produite lors du traitement. Veuillez réessayer."
+      )
+      setStatus("error")
+    }
   }
 
   // Reset the component
@@ -348,7 +428,7 @@ export function DocumentScanner({
     setStatus("idle")
     setError(null)
     setProcessingStatus("")
-    scannerControls.start({ top: "0%" })
+    setExtractedText([])
   }
 
   // Clean up object URLs on unmount
@@ -359,6 +439,15 @@ export function DocumentScanner({
       }
     }
   }, [preview])
+
+  // Add a cleanup in useEffect
+  useEffect(() => {
+    // Clean up worker on component unmount
+    if (workerRef.current) {
+      workerRef.current.terminate()
+    }
+  }, [])
+
   const isMobile = useIsMobile()
   return (
     <div className={cn("flex flex-col items-center gap-4", className)}>
@@ -377,59 +466,75 @@ export function DocumentScanner({
         onDragOver={handleDrag}
         onDrop={handleDrop}
       >
+        {isLoading && (
+          <div className="absolute bg-dark/50 inset-0 flex items-center justify-center">
+            <div className="flex flex-col items-center justify-center">
+              <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
+              <p className="text-sm text-gray-500">
+                Chargement des ressources ... <br />
+                (modèles de reconnaissance)
+              </p>
+            </div>
+          </div>
+        )}
         {/* Document preview area */}
-        {preview ? (
-          <div className="w-full h-full flex items-center justify-center p-5">
-            {preview.type === "image" ? (
+        {!isLoading && (
+          <>
+            {preview ? (
+              <div className="w-full h-full flex items-center justify-center p-5">
+                {preview.type === "image" ? (
+                  <img
+                    src={preview.url || "/placeholder.svg"}
+                    alt="Document preview"
+                    className="max-w-full max-h-full object-contain"
+                  />
+                ) : preview.pdfCanvas ? (
+                  <img
+                    src={
+                      preview.pdfCanvas.toDataURL("image/png") ||
+                      "/placeholder.svg"
+                    }
+                    alt="PDF preview"
+                    className="max-w-full max-h-full object-contain"
+                  />
+                ) : (
+                  <div className="flex flex-col items-center justify-center">
+                    <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
+                    <p className="mt-2 text-sm text-gray-500">
+                      {processingStatus || "Loading preview..."}
+                    </p>
+                  </div>
+                )}
+              </div>
+            ) : defaultImage ? (
               <img
-                src={preview.url || "/placeholder.svg"}
-                alt="Document preview"
-                className="max-w-full max-h-full object-contain"
-              />
-            ) : preview.pdfCanvas ? (
-              <img
-                src={
-                  preview.pdfCanvas.toDataURL("image/png") || "/placeholder.svg"
-                }
-                alt="PDF preview"
-                className="max-w-full max-h-full object-contain"
+                src={defaultImage || "/placeholder.svg"}
+                alt="Default document"
+                className="w-full h-full object-contain"
               />
             ) : (
-              <div className="flex flex-col items-center justify-center">
-                <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
-                <p className="mt-2 text-sm text-gray-500">
-                  {processingStatus || "Loading preview..."}
+              <div className="w-full h-full flex flex-col items-center justify-center p-6 text-center">
+                <FileUp className="w-12 h-12 mb-4 text-gray-400" />
+                <h3 className="text-lg font-medium text-gray-700">
+                  Glisser et lâcher
+                </h3>
+                <p className="text-sm text-gray-500 mb-4">
+                  Glissez votre document ici ou cliquez pour parcourir
+                </p>
+                <button
+                  type="button"
+                  onClick={handleButtonClick}
+                  className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-md text-sm font-medium transition-colors"
+                >
+                  Parcourir
+                </button>
+                <p className="mt-4 text-xs text-gray-400">
+                  Formats supportés: JPEG, PNG, GIF, PDF (Max{" "}
+                  {formatFileSize(maxFileSize)})
                 </p>
               </div>
             )}
-          </div>
-        ) : defaultImage ? (
-          <img
-            src={defaultImage || "/placeholder.svg"}
-            alt="Default document"
-            className="w-full h-full object-contain"
-          />
-        ) : (
-          <div className="w-full h-full flex flex-col items-center justify-center p-6 text-center">
-            <FileUp className="w-12 h-12 mb-4 text-gray-400" />
-            <h3 className="text-lg font-medium text-gray-700">
-              Glisser et lâcher
-            </h3>
-            <p className="text-sm text-gray-500 mb-4">
-              Glissez votre document ici ou cliquez pour parcourir
-            </p>
-            <button
-              type="button"
-              onClick={handleButtonClick}
-              className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-md text-sm font-medium transition-colors"
-            >
-              Parcourir
-            </button>
-            <p className="mt-4 text-xs text-gray-400">
-              Formats supportés: JPEG, PNG, GIF, PDF (Max{" "}
-              {formatFileSize(maxFileSize)})
-            </p>
-          </div>
+          </>
         )}
 
         {/* Hidden file input */}
@@ -442,7 +547,7 @@ export function DocumentScanner({
         />
 
         {/* Scanner light effect - only show during scanning */}
-        {status === "scanning" && (
+        {status === "processing" && (
           <motion.div
             className="absolute left-0 w-full h-[20px] pointer-events-none"
             style={{
@@ -450,21 +555,31 @@ export function DocumentScanner({
               boxShadow: `0 0 10px 5px ${scanColor}`,
               top: "0%",
             }}
-            animate={scannerControls}
+            animate={{
+              top: ["0%", "100%"],
+              transition: {
+                duration: scanDuration,
+                ease: "linear",
+                repeat: Infinity,
+                repeatType: "loop",
+              },
+            }}
           />
         )}
 
         {/* Scan lines overlay - only show during scanning */}
-        {status === "scanning" && (
+        {status === "processing" && (
           <div className="absolute inset-0 pointer-events-none bg-[linear-gradient(to_bottom,transparent_0px,transparent_3px,rgba(0,0,0,0.05)_4px)] bg-[length:100%_4px]" />
         )}
 
         {/* Processing overlay */}
-        {status === "processing" && (
-          <div className="absolute inset-0 bg-black/10 flex items-center justify-center">
+        {status === "processing" && processingStatus && (
+          <div className="absolute inset-0 bg-black/5 flex items-center justify-center">
             <div className="bg-white p-4 rounded-lg shadow-lg flex flex-col items-center">
               <Loader2 className="h-8 w-8 animate-spin text-green-500 mb-2" />
-              <p className="text-sm font-medium">Traitement du document...</p>
+              <p className="text-sm font-medium">
+                {processingStatus || "Traitement du document..."}
+              </p>
             </div>
           </div>
         )}
@@ -477,6 +592,11 @@ export function DocumentScanner({
               <p className="text-sm font-medium">
                 Document traité avec succès!
               </p>
+              {extractedText.length > 0 && (
+                <p className="text-xs text-gray-500 mt-1">
+                  {extractedText.length} page(s) analysée(s)
+                </p>
+              )}
             </div>
           </div>
         )}
@@ -543,7 +663,7 @@ export function DocumentScanner({
             className="w-full flex items-center justify-center px-4 py-2 bg-gray-300 text-gray-600 rounded-md font-medium cursor-not-allowed"
           >
             <Loader2 className="h-4 w-4 animate-spin mr-2" />
-            En cours de traitement...
+            Numérisation en cours...
           </button>
         )}
 
@@ -553,7 +673,7 @@ export function DocumentScanner({
             className="w-full flex items-center justify-center px-4 py-2 bg-gray-300 text-gray-600 rounded-md font-medium cursor-not-allowed"
           >
             <Loader2 className="h-4 w-4 animate-spin mr-2" />
-            En cours de traitement...
+            Traitement en cours...
           </button>
         )}
 
