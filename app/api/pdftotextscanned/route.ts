@@ -97,7 +97,7 @@ function extractDiplomaData(text: string) {
     },
   };
 
-  const diplomaInfo: any = {};
+  const diplomaInfo: any = {}
 
   diplomaInfo.diplomaNumber = text.match(/N° (DIP-\d+-[A-Z0-9]+-\d+)/)?.[1] || '';
   diplomaInfo.name = text.match(/Délivré à Mr\.\/Mme\. : (.+)/)?.[1]?.trim() || '';

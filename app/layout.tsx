@@ -1,11 +1,11 @@
 import "@/styles/globals.css"
 import { Metadata } from "next"
 import { SessionProvider } from "@/providers/SessionProvider"
+import { Toaster as SonnerToaster } from "sonner"
 
 import { siteConfig } from "@/config/site"
 import { fontSans } from "@/lib/fonts"
 import { cn } from "@/lib/utils"
-import { Toaster } from "@/components/ui/toaster"
 import Footer from "@/components/Footer"
 import Header from "@/components/Header"
 import ButtonScan from "@/components/buttonScan"
@@ -62,9 +62,9 @@ export default async function RootLayout({ children }: RootLayoutProps) {
                 <TailwindIndicator />
                 <ButtonScan />
               </ThemeProvider>
-              <Toaster />
             </div>
           </SessionProvider>
+          <SonnerToaster />
         </body>
       </html>
     </>

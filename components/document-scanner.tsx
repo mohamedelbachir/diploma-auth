@@ -13,6 +13,8 @@ import {
   RefreshCw,
   Trash2,
 } from "lucide-react"
+import QrScanner from "qr-scanner"
+import { toast } from "sonner"
 import { createWorker } from "tesseract.js"
 
 import { pdfToImg } from "@/lib/pdf-to-img"
@@ -99,7 +101,7 @@ export function DocumentScanner({
   const [extractedText, setExtractedText] = useState<string[]>([])
   const fileInputRef = useRef<HTMLInputElement>(null)
   const previewContainerRef = useRef<HTMLDivElement>(null)
-  const scannerControls = useAnimation()
+  const [result, setResult] = useState({})
   const searchParams = useSearchParams()
   const type = searchParams.get("type")
   const [documentType, setDocumentType] = useState<DocumentType>(
@@ -357,13 +359,11 @@ export function DocumentScanner({
     setProcessingStatus("Conversion du PDF en images...")
 
     try {
-      const images = await pdfToImg(file)
+      const images = await pdfToImg(file, 1)
       const pages = []
 
       for (let i = 0; i < images.length; i++) {
-        setProcessingStatus(
-          `Traitement de la page ${i + 1}/${images.length}...`
-        )
+        setProcessingStatus(`Traitement du document...`)
         const image = images[i]
 
         const text = await extractTextFromImage(image)
@@ -397,9 +397,46 @@ export function DocumentScanner({
         textResults = await processPdfFile(preview.file)
       }
 
+      setProcessingStatus("amelioration du texte...")
+
+      const result = await fetch("/api/ai", {
+        method: "POST",
+        body: JSON.stringify({ text: textResults[0] }),
+      })
+
+      const data = await result.json()
+
+      /*const formData = new FormData();
+      formData.append('file', preview.file);
+      const qrCode = await fetch("/api/qr-code", {
+        method: "POST",
+        body: formData,
+      })
+
+IndexSizeError: Failed to execute 'getImageData' on 'CanvasRenderingContext2D': The source width is 0
+      const qrCodeData = await qrCode.json()
+      console.log(qrCodeData)
+      */
+
+      //await QrScanner.scanImage(preview.file,{returnDetailedScanResult:true}).then(result=>console.log(result)).catch(e=>console.log(e))
+
+      const qrCodeData = await QrScanner.scanImage(
+        preview.type === "image" ? preview.url : preview.pdfCanvas!,
+        { returnDetailedScanResult: true }
+      )
+
+      if (!qrCodeData.data) {
+        qrCodeData.data = "QR code non trouvé"
+      }
       // Update state with extracted text
       setExtractedText(textResults)
-      console.log(textResults)
+
+      data.qrcode = qrCodeData.data
+
+      //console.log(textResults)
+      console.log(data)
+
+      setResult(data)
 
       // Complete scan
       setStatus("complete")
@@ -429,6 +466,7 @@ export function DocumentScanner({
     setError(null)
     setProcessingStatus("")
     setExtractedText([])
+    setResult({})
   }
 
   // Clean up object URLs on unmount
@@ -678,13 +716,33 @@ export function DocumentScanner({
         )}
 
         {status === "complete" && (
-          <button
-            onClick={resetScanner}
-            className="w-full flex items-center justify-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md font-medium transition-colors"
-          >
-            <RefreshCw className="h-4 w-4 mr-2 text-white" />
-            Scanner un autre document
-          </button>
+          <>
+            <button
+              onClick={resetScanner}
+              className="w-full flex items-center justify-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md font-medium transition-colors"
+            >
+              <RefreshCw className="h-4 w-4 mr-2 text-white" />
+              Scanner un autre document
+            </button>
+            <button
+              onClick={() => {
+                // Format the JSON nicely
+                const formattedJson = JSON.stringify(result, null, 2)
+                // Display in a styled toast
+                toast(
+                  <div className="flex flex-col gap-2">
+                    <p className="font-medium">Données extraites:</p>
+                    <pre className="text-xs bg-gray-100 p-2 rounded max-h-60 overflow-auto w-full whitespace-pre-wrap">
+                      <code>{formattedJson}</code>
+                    </pre>
+                  </div>
+                )
+              }}
+              className="w-full flex items-center justify-center px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-md font-medium transition-colors" // Changed color slightly for distinction
+            >
+              Afficher les résultats
+            </button>
+          </>
         )}
       </div>
     </div>

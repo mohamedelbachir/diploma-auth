@@ -3,12 +3,18 @@ import * as pdfjsLib from "pdfjs-dist/build/pdf";
 import { PDFPageProxy } from "pdfjs-dist/types/src/display/api";
 pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
 
-const loadPdf = async (file: File): Promise<PDFPageProxy[]> => {
+const loadPdf = async (file: File, numberPages?: number): Promise<PDFPageProxy[]> => {
   const uri = URL.createObjectURL(file);
   const pdf = await pdfjsLib.getDocument({ url: uri }).promise;
+  let n = 0;
+  if (numberPages) {
+    n = pdf.numPages > numberPages ? numberPages : pdf.numPages
+  } else {
+    n = pdf.numPages
+  }
 
   const pages: PDFPageProxy[] = [];
-  for (let i = 1; i <= pdf.numPages; i++) {
+  for (let i = 1; i <= n; i++) {
     const page = await pdf.getPage(i);
     pages.push(page);
   }
@@ -49,9 +55,9 @@ const renderPageToImage = async (
 };
 
 
-export const pdfToImg = async (file: File): Promise<string[]> => {
+export const pdfToImg = async (file: File, numberPages?: number): Promise<string[]> => {
   try {
-    const pages = await loadPdf(file);
+    const pages = await loadPdf(file, numberPages);
     const images: string[] = [];
 
     for (const page of pages) {
