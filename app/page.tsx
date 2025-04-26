@@ -8,6 +8,7 @@ import Footer from "@/components/Footer"
 import FormatCards from "@/components/FormatCards"
 import Header from "@/components/Header"
 import HowImage from "@/assets/how.jpg"
+import Student from "@/assets/college-degree.jpg"
 const Index = () => {
   return (
     <>
@@ -119,7 +120,7 @@ const Index = () => {
                     </Button>
 
                     <p className="text-sm text-gray-500 mt-4">
-                      Importez votre diplôme au format PDF (100 Mo max.)
+                      Importez votre diplôme au format PDF (5 Mo max.)
                     </p>
                   </div>
                 </CardContent>
@@ -153,7 +154,7 @@ const Index = () => {
             {/* Left side - Illustration */}
             <div className="flex justify-center">
               <Image
-                src={HowImage}
+                src={Student}
                 alt="How it works"
                 className="max-w-full h-auto"
               />
@@ -180,8 +181,7 @@ const Index = () => {
                   </div>
                   <div className="ml-4 pt-1">
                     <p className="text-lg font-medium text-gray-800">
-                      Importez le diplôme à vérifier ou sélectionnez le modèle à
-                      générer
+                      Importez le diplôme à vérifier ou à certifier
                     </p>
                   </div>
                 </div>
@@ -196,8 +196,7 @@ const Index = () => {
                   </div>
                   <div className="ml-4 pt-1">
                     <p className="text-lg font-medium text-gray-800">
-                      Renseignez les informations nécessaires et les signatures
-                      requises
+                      choisir soit de verifier ou certifier
                     </p>
                   </div>
                 </div>
@@ -212,7 +211,7 @@ const Index = () => {
                   <div className="ml-4 pt-1">
                     <p className="text-lg font-medium text-gray-800">
                       Recevez le résultat de vérification ou votre diplôme
-                      officiel généré
+                      certifié généré
                     </p>
                   </div>
                 </div>
@@ -239,7 +238,7 @@ const Index = () => {
               className="px-8 py-6 text-lg bg-red-500 hover:bg-red-600 text-white"
               asChild
             >
-              <Link href="/pdf-to-word">Commencer</Link>
+              <Link href="/login">Commencer</Link>
             </Button>
           </div>
         </div>
@@ -268,7 +267,7 @@ const Index = () => {
         <div className="container relative">
           <div className="max-w-2xl mx-auto text-center">
             <h2 className="text-3xl font-bold mb-4">
-              Commencez à gérer vos diplômes aujourd&apos;hui
+              Commencez à verifié ou certifié vos diplômes aujourd&apos;hui
             </h2>
             <p className="text-xl mb-8 text-gray-600">
               Aucune inscription requise pour vérifier l&apos;authenticité.

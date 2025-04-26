@@ -23,14 +23,14 @@ const Footer = () => {
           <div>
             <h3 className="font-medium">Services</h3>
             <ul className="mt-3 space-y-2">
-              <li>
+              <!--<li>
                 <Link
                   href="/pricing"
                   className="text-sm text-muted-foreground hover:text-primary"
                 >
                   Tarification
                 </Link>
-              </li>
+              </li>-->
               <li>
                 <Link
                   href="/faq"
