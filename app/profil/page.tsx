@@ -34,6 +34,8 @@ const studentData = {
   filiere: "Ingénierie logicielle",
   avatar: null, // Optional profile picture URL
   diplomaUrl: null, // This would be a real URL in a production app
+  mention:"passable",
+
 }
 
 const Profile = () => {
@@ -98,6 +100,10 @@ const Profile = () => {
                     <TableCell className="font-medium">Filière</TableCell>
                     <TableCell>{studentData.filiere}</TableCell>
                   </TableRow>
+		  <TableRow>
+                    <TableCell className="font-medium">Mention</TableCell>
+                    <TableCell>{studentData.mention}</TableCell>
+                  </TableRow>
                 </TableBody>
               </Table>
             </CardContent>
@@ -133,7 +139,7 @@ const Profile = () => {
                 </div>
                 <div>
                   <h3 className="font-semibold">Établissement</h3>
-                  <p>Université de Paris</p>
+                  <p>Université de Bertoua</p>
                 </div>
                 <div>
                   <h3 className="font-semibold">Statut du diplôme</h3>
