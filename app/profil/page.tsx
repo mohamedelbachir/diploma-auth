@@ -1,8 +1,5 @@
-"use client"
-
-import { useState } from "react"
+import { redirect } from "next/navigation"
 import { Download, User } from "lucide-react"
-import { toast } from "sonner"
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
@@ -22,34 +19,46 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import Footer from "@/components/Footer"
-import Header from "@/components/Header"
 
-// Mock user data - in a real app, this would come from an authentication system
-const studentData = {
-  id: "ST12345",
-  name: "Marie Dupont",
-  matricule: "MAT2022-1234",
-  domaines: ["Informatique", "Sciences des données"],
-  filiere: "Ingénierie logicielle",
-  avatar: null, // Optional profile picture URL
-  diplomaUrl: null, // This would be a real URL in a production app
-  mention:"passable",
+import { getSession } from "../actions"
 
+// Server component to fetch student data from the API
+async function getDashboardData() {
+  const apiUrl = `${process.env.BACKEND_API_URL}/auth/dashboard/`
+
+  // Get the user session with authentication token
+  const session = await getSession()
+
+  if (!session.user || !session.user.token) {
+    // User is not authenticated
+    return null
+  }
+
+  const res = await fetch(apiUrl, {
+    headers: {
+      Authorization: `Bearer ${session.user.token}`,
+    },
+    cache: "no-store",
+  })
+
+  if (!res.ok) {
+    throw new Error("Failed to fetch dashboard data")
+  }
+
+  return res.json()
 }
 
-const Profile = () => {
-  const [isDownloading, setIsDownloading] = useState(false)
+export default async function Profile() {
+  const data = await getDashboardData()
 
-  const handleDownload = () => {
-    setIsDownloading(true)
-
-    // Simulate download process
-    setTimeout(() => {
-      setIsDownloading(false)
-      toast.success("Votre diplôme a été téléchargé avec succès")
-    }, 2000)
+  // If no data is returned, user is not authenticated
+  if (!data) {
+    redirect("/login")
+    return null
   }
+
+  const studentProfile = data.student_profile
+  const diploma = data.diplomas[0] // Assuming we show the first diploma
 
   return (
     <div className="my-12">
@@ -67,17 +76,17 @@ const Profile = () => {
               <div className="flex items-center gap-4 mb-6">
                 <Avatar className="h-16 w-16">
                   <AvatarImage
-                    src={studentData.avatar || ""}
-                    alt={studentData.name}
+                    src=""
+                    alt={`${diploma.student.first_name} ${diploma.student.last_name}`}
                   />
                   <AvatarFallback className="text-lg">
                     <User className="h-8 w-8" />
                   </AvatarFallback>
                 </Avatar>
                 <div>
-                  <h2 className="text-xl font-semibold">{studentData.name}</h2>
+                  <h2 className="text-xl font-semibold">{`${diploma.student.first_name} ${diploma.student.last_name}`}</h2>
                   <p className="text-muted-foreground">
-                    Matricule: {studentData.matricule}
+                    Matricule: {studentProfile.registration_number}
                   </p>
                 </div>
               </div>
@@ -86,46 +95,43 @@ const Profile = () => {
                 <TableBody>
                   <TableRow>
                     <TableCell className="font-medium">Nom</TableCell>
-                    <TableCell>{studentData.name}</TableCell>
+                    <TableCell>{`${diploma.student.first_name} ${diploma.student.last_name}`}</TableCell>
                   </TableRow>
                   <TableRow>
                     <TableCell className="font-medium">Matricule</TableCell>
-                    <TableCell>{studentData.matricule}</TableCell>
+                    <TableCell>{studentProfile.registration_number}</TableCell>
                   </TableRow>
                   <TableRow>
-                    <TableCell className="font-medium">Domaines</TableCell>
-                    <TableCell>{studentData.domaines.join(", ")}</TableCell>
+                    <TableCell className="font-medium">Email</TableCell>
+                    <TableCell>{diploma.student.email}</TableCell>
                   </TableRow>
                   <TableRow>
                     <TableCell className="font-medium">Filière</TableCell>
-                    <TableCell>{studentData.filiere}</TableCell>
+                    <TableCell>{diploma.student.series.name}</TableCell>
                   </TableRow>
-		  <TableRow>
+                  <TableRow>
                     <TableCell className="font-medium">Mention</TableCell>
-                    <TableCell>{studentData.mention}</TableCell>
+                    <TableCell>{diploma.distinction}</TableCell>
                   </TableRow>
                 </TableBody>
               </Table>
             </CardContent>
             <CardFooter>
-              <Button
-                className="w-full"
-                onClick={handleDownload}
-                disabled={isDownloading}
-              >
-                {isDownloading ? (
-                  "Téléchargement en cours..."
-                ) : (
-                  <>
-                    <Download className="mr-2" />
-                    Télécharger mon diplôme
-                  </>
-                )}
-              </Button>
+              <form action="/api/download" method="POST">
+                <input
+                  type="hidden"
+                  name="diplomaId"
+                  value={diploma.reference_number}
+                />
+                <Button className="w-full" type="submit">
+                  <Download className="mr-2" />
+                  Télécharger mon diplôme
+                </Button>
+              </form>
             </CardFooter>
           </Card>
 
-          {/* Additional cards can be added here */}
+          {/* Additional card with academic details */}
           <Card>
             <CardHeader>
               <CardTitle>Scolarité</CardTitle>
@@ -135,11 +141,23 @@ const Profile = () => {
               <div className="space-y-4">
                 <div>
                   <h3 className="font-semibold">Année d&apos;obtention</h3>
-                  <p>2023</p>
+                  <p>{diploma.year}</p>
                 </div>
                 <div>
-                  <h3 className="font-semibold">Établissement</h3>
-                  <p>Université de Bertoua</p>
+                  <h3 className="font-semibold">Mois d&apos;obtention</h3>
+                  <p>{diploma.month}</p>
+                </div>
+                <div>
+                  <h3 className="font-semibold">Spécialisation</h3>
+                  <p>{diploma.student.series.specialization.name}</p>
+                </div>
+                <div>
+                  <h3 className="font-semibold">Numéro de référence</h3>
+                  <p>{diploma.reference_number}</p>
+                </div>
+                <div>
+                  <h3 className="font-semibold">Date d&apos;émission</h3>
+                  <p>{diploma.issue_date}</p>
                 </div>
                 <div>
                   <h3 className="font-semibold">Statut du diplôme</h3>
@@ -155,5 +173,3 @@ const Profile = () => {
     </div>
   )
 }
-
-export default Profile

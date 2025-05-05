@@ -12,5 +12,8 @@ export default async function ProfilLayout({
   if (!session?.user) {
     redirect("/login")
   }
+  if (session.user.role !== "student") {
+    redirect("/admin")
+  }
   return <>{children}</>
 }

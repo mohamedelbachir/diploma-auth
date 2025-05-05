@@ -1,10 +1,8 @@
 "use client"
 
 import { useState } from "react"
-import Link from "next/link"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
-import { toast } from "sonner"
 import { z } from "zod"
 
 import { Button } from "@/components/ui/button"
@@ -17,12 +15,11 @@ import {
   FormMessage,
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
-import { Separator } from "@/components/ui/separator"
 
 import { login } from "../actions"
 
 const formSchema = z.object({
-  email: z.string().email({
+  email: z.string().min(4, {
     message: "Veuillez entrer une adresse e-mail valide.",
   }),
   password: z.string().min(6, {
@@ -88,7 +85,7 @@ const Login = () => {
                   <FormLabel>Email</FormLabel>
                   <FormControl>
                     <Input
-                      placeholder="exemple@domaine.com"
+                      placeholder="exemple@domaine.com ou identifiant"
                       {...field}
                       onChange={(e) => {
                         field.onChange(e)
