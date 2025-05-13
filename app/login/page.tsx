@@ -46,7 +46,7 @@ const Login = () => {
       formData.append("email", values.email)
       formData.append("password", values.password)
       const r = await login(formData)
-      if (r.error) {
+      if (r?.error) {
         setError(r.error)
       }
     } catch (error) {
