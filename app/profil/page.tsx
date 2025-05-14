@@ -118,11 +118,7 @@ export default async function Profile() {
             </CardContent>
             <CardFooter>
               <form action="/api/download" method="POST">
-                <input
-                  type="hidden"
-                  name="diplomaId"
-                  value={diploma.reference_number}
-                />
+                <input type="hidden" name="diplomaId" value={diploma.id} />
                 <Button className="w-full" type="submit">
                   <Download className="mr-2" />
                   Télécharger mon diplôme

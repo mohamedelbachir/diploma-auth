@@ -15,17 +15,17 @@ const diplomaSchema: OpenAI.Chat.Completions.ChatCompletionTool = {
         parameters: {
             type: "object",
             properties: {
-                diplomaNumber: { type: "string", description: "The unique number of the diploma." },
+                diplomaNumber: { type: "string", description: "The unique number of the diploma (e.g.,DIP-XXX-XXX-XXX)." },
                 name: { type: "string", description: "The full name of the diploma holder." },
                 birthDate: { type: "string", description: "The birth date of the diploma holder (e.g., YYYY-MM-DD)." },
                 birthPlace: { type: "string", description: "The place of birth of the diploma holder." },
-                gender: { type: "string", description: "The gender of the diploma holder." },
+                gender: { type: "string", description: "The gender of the diploma holder (e.g., M or F)." },
                 registrationNumber: { type: "string", description: "The registration number associated with the diploma." },
-                specialization: { type: "string", description: "The field of specialization." },
-                series: { type: "string", description: "The series identifier of the diploma." },
+                specialization: { type: "string", description: "The domains of dimplomas." },
+                series: { type: "string", description: "The field of specialization." },
                 grade: { type: "string", description: "The grade or honors received (e.g., 'Good', 'Very Good')." },
                 issueDate: { type: "string", description: "The date the diploma was issued (e.g., YYYY-MM-DD)." },
-                sessionDate: { type: "string", description: "The date of the examination session (e.g., YYYY-MM-DD)." },
+                sessionDate: { type: "string", description: "The date of the examination session (e.g., Month Years)." },
                 certificateType: {
                     type: "object",
                     properties: {

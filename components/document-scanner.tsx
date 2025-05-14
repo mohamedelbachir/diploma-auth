@@ -15,6 +15,7 @@ import {
 } from "lucide-react"
 import QrScanner from "qr-scanner"
 import { toast } from "sonner"
+import Swal from "sweetalert2"
 import { createWorker } from "tesseract.js"
 
 import { pdfToImg } from "@/lib/pdf-to-img"
@@ -112,6 +113,12 @@ export function DocumentScanner({
 
   // Load PDF.js library dynamically
   useEffect(() => {
+    // Swal.fire({
+    //   title: "Error!",
+    //   text: "Do you want to continue",
+    //   icon: "error",
+    //   confirmButtonText: "Cool",
+    // })
     const loadTesseract = async () => {
       workerRef.current = await createWorker({
         logger: (m) => {
@@ -405,20 +412,40 @@ export function DocumentScanner({
       })
 
       const data = await result.json()
-
-      /*const formData = new FormData();
-      formData.append('file', preview.file);
-      const qrCode = await fetch("/api/qr-code", {
-        method: "POST",
-        body: formData,
-      })
-
-IndexSizeError: Failed to execute 'getImageData' on 'CanvasRenderingContext2D': The source width is 0
-      const qrCodeData = await qrCode.json()
-      console.log(qrCodeData)
-      */
-
-      //await QrScanner.scanImage(preview.file,{returnDetailedScanResult:true}).then(result=>console.log(result)).catch(e=>console.log(e))
+      // const data = {
+      //   diplomaNumber: "DIP-2023-22R2311B",
+      //   name: "JEAN DUPONT",
+      //   birthDate: "2000-05-15",
+      //   birthPlace: "GAROUA",
+      //   gender: "M",
+      //   registrationNumber: "22R2311B",
+      //   specialization: "Droit Privé",
+      //   series: "",
+      //   grade: "Passable",
+      //   issueDate: "2023-07-01",
+      //   sessionDate: "july 2023",
+      //   certificateType: {
+      //     french:
+      //       "CERTIFICAT DE PROFESSEUR DE L'ENSEIGNEMENT SECONDAIRE, 2ème GRADE",
+      //     english: "SECONDARY AND HIGH SCHOOL TEACHER'S CERTIFICATE, 2nd LEVEL",
+      //   },
+      //   institution: {
+      //     name: {
+      //       french: "UNIVERSITE DE BERTOUA",
+      //       english: "THE UNIVERSITY OF BERTOUA",
+      //     },
+      //     school: {
+      //       french: "ECOLE NORMALE SUPERIEURE DE BERTOUA",
+      //       english: "HIGHER TEACHER TRAINING COLLEGE OF BERTOUA",
+      //     },
+      //     ministry: {
+      //       french: "MINISTERE DE L'ENSEIGNEMENT SUPERIEUR",
+      //       english: "THE MINISTRY OF HIGHER EDUCATION",
+      //     },
+      //   },
+      //   qrcode: "https://diploma-auth.vercel.app/diplome/1",
+      // }
+      console.log(data)
 
       const qrCodeData = await QrScanner.scanImage(
         preview.type === "image" ? preview.url : preview.pdfCanvas!,
@@ -433,7 +460,7 @@ IndexSizeError: Failed to execute 'getImageData' on 'CanvasRenderingContext2D': 
 
       data.qrcode = qrCodeData.data
 
-      //console.log(textResults)
+      console.log(textResults)
       console.log(data)
 
       setResult(data)
@@ -446,6 +473,129 @@ IndexSizeError: Failed to execute 'getImageData' on 'CanvasRenderingContext2D': 
       // Call callback if provided
       if (onScanComplete) {
         onScanComplete(preview.file, textResults)
+      }
+
+      // Show loading SweetAlert for verification
+      Swal.fire({
+        title: "Vérification en cours...",
+        text: "Veuillez patienter pendant que nous traitons votre demande.",
+        allowOutsideClick: false,
+        didOpen: () => {
+          Swal.showLoading()
+        },
+      })
+
+      // Transform AI data for the verification API
+      // Assuming 'data' is the direct response from /api/ai
+      // const verificationPayload = {
+      //   action: "authenticate",
+      //   extracted: {
+      //     diploma_number: data.diplomaNumber || "",
+      //     student_name: data.name || "",
+      //     birth_date: data.birthDate || "",
+      //     birth_place: data.birthPlace || "",
+      //     registration_number: data.registrationNumber || "",
+      //     gender: data.gender || "",
+      //     domain: data.specialization || "", // Mapping specialization to domain
+      //     series: data.series || "",
+      //     mention: data.grade || "", // Mapping grade to mention
+      //     exam_session: data.sessionDate || "", // Mapping sessionDate to exam_session
+      //     issued_date: data.issueDate || "", // Mapping issueDate to issued_date
+      //   },
+      // }
+      // console.log(verificationPayload)
+
+      try {
+        // Call our new internal API route for verification or certification
+        const actionResponse = await fetch("/api/diploma-action", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ actionType: documentType, aiData: data }), // Send action type and AI data
+        })
+
+        const actionResult = await actionResponse.json()
+
+        Swal.close() // Close loading alert
+
+        if (actionResponse.ok && actionResult.valid) {
+          if (documentType === "certification") {
+            // Handle certification success: Download PDF
+            if (actionResult.pdfUrl) {
+              Swal.fire({
+                icon: "success",
+                title: "Diplôme Certifié!",
+                text:
+                  actionResult.message ||
+                  "Le diplôme a été certifié avec succès. Le téléchargement va commencer.",
+                confirmButtonText: "OK",
+              })
+              // Trigger PDF download
+              const link = document.createElement("a")
+              link.href = actionResult.pdfUrl
+              link.setAttribute(
+                "download",
+                actionResult.fileName || "certified-diploma.pdf"
+              ) // Suggest a filename
+              document.body.appendChild(link)
+              link.click()
+              document.body.removeChild(link)
+            } else {
+              // pdfUrl missing in response
+              Swal.fire({
+                icon: "warning",
+                title: "Certification Réussie, mais...",
+                text:
+                  actionResult.message ||
+                  "Le diplôme est certifié, mais le lien de téléchargement du PDF est manquant.",
+                confirmButtonText: "OK",
+              })
+            }
+          } else {
+            // Handle verification success
+            Swal.fire({
+              icon: "success",
+              title: "Diplôme Authentifié!",
+              html: `
+                <p>${actionResult.message || "Le diplôme est authentique."}</p>
+                <p><strong>Confiance:</strong> ${
+                  actionResult.confidence || "N/A"
+                }</p>
+              `,
+              confirmButtonText: "OK",
+            })
+          }
+        } else {
+          // Handle errors for both verification and certification
+          let errorHtml = `<p>${
+            actionResult.message || "L'opération a échoué."
+          }</p>`
+          if (actionResult.mismatches && actionResult.mismatches.length > 0) {
+            errorHtml += "<p><strong>Divergences:</strong></p><ul>"
+            actionResult.mismatches.forEach((mismatch: string) => {
+              errorHtml += `<li>${mismatch}</li>`
+            })
+            errorHtml += "</ul>"
+          }
+          Swal.fire({
+            icon: "error",
+            title:
+              documentType === "certification"
+                ? "Échec de la Certification"
+                : "Échec de l'Authentification",
+            html: errorHtml,
+            confirmButtonText: "OK",
+          })
+        }
+      } catch (apiError) {
+        console.error("Error during diploma action:", apiError)
+        Swal.fire({
+          icon: "error",
+          title: "Erreur de Communication",
+          text: "Une erreur s'est produite lors de la communication avec le serveur. Veuillez réessayer.",
+          confirmButtonText: "OK",
+        })
       }
     } catch (err) {
       console.error("Error during scanning process:", err)

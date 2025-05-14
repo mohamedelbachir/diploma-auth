@@ -40,6 +40,7 @@ export const getSession = async () => {
 export const login = async (formData: FormData) => {
   const email = formData.get("email") as string;
   const password = formData.get("password") as string;
+  let profile="student"
 
   try {
     // Call to backend API for JWT authentication
@@ -98,17 +99,16 @@ export const login = async (formData: FormData) => {
     };
 
     await session.save();
-
-    setTimeout(() => {
-      if (userData.role === "student") {
+    profile=userData.role;
+  } catch (error) {
+    console.error("Login error:", error);
+    return { error: "Authentication failed" };
+  }finally{
+      if (profile === "student") {
         redirect("/profil");
       } else {
         redirect("/admin");
       }
-    }, 1000);
-  } catch (error) {
-    console.error("Login error:", error);
-    return { error: "Authentication failed" };
   }
 };
 export const logout = async () => {

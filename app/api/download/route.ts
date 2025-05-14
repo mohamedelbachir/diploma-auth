@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
         }
 
         // Construct API URL
-        const apiUrl = `${process.env.BACKEND_API_URL}/diplomas/${diplomaId}/`;
+        const apiUrl = `${process.env.BACKEND_API_URL}/diplomas/${diplomaId}/?generate_pdf=true`;
 
         // Fetch the PDF from the API
         const response = await fetch(apiUrl, {

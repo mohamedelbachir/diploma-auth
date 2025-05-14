@@ -8,6 +8,8 @@ export async function POST(request: NextRequest) {
         const formData = await request.formData();
         const selectedDiplomas = formData.getAll("selectedDiplomas") as string[];
 
+        console.log(formData)
+        console.log(selectedDiplomas)
         if (!selectedDiplomas || selectedDiplomas.length === 0) {
             return NextResponse.json(
                 { error: "No diplomas selected" },
@@ -28,7 +30,7 @@ export async function POST(request: NextRequest) {
         // Download each diploma and add to ZIP
         for (const diplomaId of selectedDiplomas) {
             // Construct API URL for this diploma
-            const apiUrl = `${process.env.BACKEND_API_URL}/diplomas/${diplomaId}/`;
+            const apiUrl = `${process.env.BACKEND_API_URL}/diplomas/${diplomaId}/?generate_pdf=true`;
 
             // Fetch the PDF from the API
             const response = await fetch(apiUrl, {

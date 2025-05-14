@@ -120,11 +120,12 @@ const Header = () => {
               </Button>
             </SheetTrigger>
             <SheetContent side="right" className="pt-10">
-              <nav className="flex flex-col gap-4">{links()}</nav>
+              <nav className="flex flex-col  gap-5">{links()}</nav>
+              <hr className="mt-3" />
               {user ? (
                 <>
                   <Button
-                    className="w-full justify-start"
+                    className="w-full my-3 justify-start"
                     asChild
                     onClick={() => setOpen(false)}
                   >

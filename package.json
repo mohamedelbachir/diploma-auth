@@ -50,6 +50,7 @@
     "react-hook-form": "^7.55.0",
     "sharp": "^0.31.3",
     "sonner": "^2.0.3",
+    "sweetalert2": "^11.21.0",
     "tailwind-merge": "^1.14.0",
     "tailwindcss-animate": "^1.0.6",
     "tesseract.js": "^4.1.4",
