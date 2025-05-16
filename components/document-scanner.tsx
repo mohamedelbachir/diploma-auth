@@ -539,6 +539,8 @@ export function DocumentScanner({
 
         const contentType = actionResponse.headers.get("content-type")
 
+        console.log(contentType)
+
         if (actionResponse.ok) {
           if (
             contentType &&
@@ -546,34 +548,35 @@ export function DocumentScanner({
             documentType === "certification"
           ) {
             // Handle PDF response for certification
-            const blob = await actionResponse.blob()
-            const url = window.URL.createObjectURL(blob)
-            const link = document.createElement("a")
-            link.href = url
-
-            // Try to get filename from Content-Disposition header, fallback to a default
-            const contentDisposition = actionResponse.headers.get(
-              "content-disposition"
-            )
-            let fileName = "certified-diploma.pdf"
-            if (contentDisposition) {
-              const fileNameMatch =
-                contentDisposition.match(/filename="?(.+)"?/i)
-              if (fileNameMatch && fileNameMatch.length === 2) {
-                fileName = fileNameMatch[1]
-              }
-            }
-            link.setAttribute("download", fileName)
-            document.body.appendChild(link)
-            link.click()
-            link?.remove()
-            window.URL.revokeObjectURL(url) // Clean up
-
             Swal.fire({
               icon: "success",
               title: "Diplôme Certifié!",
-              text: "Le diplôme a été certifié avec succès. Le téléchargement a commencé.",
-              confirmButtonText: "OK",
+              text: "Le diplôme a été certifié avec succès. Appuyer sur telecharger.",
+              confirmButtonText: "Télecharger",
+              didClose: async () => {
+                const blob = await actionResponse.blob()
+                const url = window.URL.createObjectURL(blob)
+                const link = document.createElement("a")
+                link.href = url
+
+                // Try to get filename from Content-Disposition header, fallback to a default
+                const contentDisposition = actionResponse.headers.get(
+                  "content-disposition"
+                )
+                let fileName = "certified-diploma.pdf"
+                // if (contentDisposition) {
+                //   const fileNameMatch =
+                //     contentDisposition.match(/filename="?(.+)"?/i)
+                //   if (fileNameMatch && fileNameMatch.length === 2) {
+                //     fileName = fileNameMatch[1]
+                //   }
+                // }
+                link.setAttribute("download", fileName)
+                document.body.appendChild(link)
+                link.click()
+                link?.remove()
+                window.URL.revokeObjectURL(url) // Clean up
+              },
             })
           } else if (contentType && contentType.includes("application/json")) {
             // Handle JSON response (for verification or non-PDF certification success/error)
@@ -619,7 +622,7 @@ export function DocumentScanner({
                 actionResult.mismatches.length > 0
               ) {
                 errorHtml += "<p><strong>Divergences:</strong></p><ul>"
-                actionResult.mismatches.forEach((mismatch:string) => {
+                actionResult.mismatches.forEach((mismatch: string) => {
                   // Removed type annotation for JS
                   errorHtml += `<li>${mismatch}</li>`
                 })
@@ -667,7 +670,7 @@ export function DocumentScanner({
             errorMessage = errorData.error || errorData.message || errorMessage
             if (errorData.mismatches && errorData.mismatches.length > 0) {
               errorMessage += "<br/><p><strong>Divergences:</strong></p><ul>"
-              errorData.mismatches.forEach((mismatch:string) => {
+              errorData.mismatches.forEach((mismatch: string) => {
                 errorMessage += `<li>${mismatch}</li>`
               })
               errorMessage += "</ul>"
@@ -706,11 +709,11 @@ export function DocumentScanner({
           apiError
         )
         // Assuming setError and setStatus are state setters if this is in a React/Vue component
-        
-          setError(
-            "Une erreur de communication s'est produite. Veuillez réessayer."
-          )
-         setStatus("error")
+
+        setError(
+          "Une erreur de communication s'est produite. Veuillez réessayer."
+        )
+        setStatus("error")
         Swal.fire({
           icon: "error",
           title: "Erreur de Communication",
@@ -995,7 +998,7 @@ export function DocumentScanner({
               <RefreshCw className="h-4 w-4 mr-2 text-white" />
               Scanner un autre document
             </button>
-            <button
+            {/*<button
               onClick={() => {
                 // Format the JSON nicely
                 const formattedJson = JSON.stringify(result, null, 2)
@@ -1012,7 +1015,7 @@ export function DocumentScanner({
               className="w-full flex items-center justify-center px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-md font-medium transition-colors" // Changed color slightly for distinction
             >
               Afficher les résultats
-            </button>
+            </button>*/}
           </>
         )}
       </div>
