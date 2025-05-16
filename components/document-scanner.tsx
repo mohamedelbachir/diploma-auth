@@ -122,7 +122,7 @@ export function DocumentScanner({
     const loadTesseract = async () => {
       workerRef.current = await createWorker({
         logger: (m) => {
-          console.log(m)
+          //console.log(m)
           if (m.status === "recognizing text") {
             setProcessingStatus(
               `Reconnaissance du texte... ${Math.floor(m.progress * 100)}%`
@@ -459,6 +459,15 @@ export function DocumentScanner({
       setExtractedText(textResults)
 
       data.qrcode = qrCodeData.data
+      const qrCodeID = qrCodeData.data.split("/").pop()
+      console.log("ID : " + qrCodeID)
+
+      if (
+        data?.diplomaNumber !== qrCodeID &&
+        qrCodeID !== "QR code non trouvé"
+      ) {
+        data.diplomaNumber = qrCodeID
+      }
 
       console.log(textResults)
       console.log(data)
@@ -505,8 +514,19 @@ export function DocumentScanner({
       // }
       // console.log(verificationPayload)
 
+      // Assuming this code is within an async function, e.g., a form submission handler
       try {
-        // Call our new internal API route for verification or certification
+        // Show loading alert
+        Swal.fire({
+          title: "Traitement en cours...",
+          text: "Veuillez patienter.",
+          allowOutsideClick: false,
+          didOpen: () => {
+            Swal.showLoading()
+          },
+        })
+
+        // Call our internal API route
         const actionResponse = await fetch("/api/diploma-action", {
           method: "POST",
           headers: {
@@ -515,85 +535,186 @@ export function DocumentScanner({
           body: JSON.stringify({ actionType: documentType, aiData: data }), // Send action type and AI data
         })
 
-        const actionResult = await actionResponse.json()
-
         Swal.close() // Close loading alert
 
-        if (actionResponse.ok && actionResult.valid) {
-          if (documentType === "certification") {
-            // Handle certification success: Download PDF
-            if (actionResult.pdfUrl) {
-              Swal.fire({
-                icon: "success",
-                title: "Diplôme Certifié!",
-                text:
-                  actionResult.message ||
-                  "Le diplôme a été certifié avec succès. Le téléchargement va commencer.",
-                confirmButtonText: "OK",
-              })
-              // Trigger PDF download
-              const link = document.createElement("a")
-              link.href = actionResult.pdfUrl
-              link.setAttribute(
-                "download",
-                actionResult.fileName || "certified-diploma.pdf"
-              ) // Suggest a filename
-              document.body.appendChild(link)
-              link.click()
-              document.body.removeChild(link)
+        const contentType = actionResponse.headers.get("content-type")
+
+        if (actionResponse.ok) {
+          if (
+            contentType &&
+            contentType.includes("application/pdf") &&
+            documentType === "certification"
+          ) {
+            // Handle PDF response for certification
+            const blob = await actionResponse.blob()
+            const url = window.URL.createObjectURL(blob)
+            const link = document.createElement("a")
+            link.href = url
+
+            // Try to get filename from Content-Disposition header, fallback to a default
+            const contentDisposition = actionResponse.headers.get(
+              "content-disposition"
+            )
+            let fileName = "certified-diploma.pdf"
+            if (contentDisposition) {
+              const fileNameMatch =
+                contentDisposition.match(/filename="?(.+)"?/i)
+              if (fileNameMatch && fileNameMatch.length === 2) {
+                fileName = fileNameMatch[1]
+              }
+            }
+            link.setAttribute("download", fileName)
+            document.body.appendChild(link)
+            link.click()
+            link?.remove()
+            window.URL.revokeObjectURL(url) // Clean up
+
+            Swal.fire({
+              icon: "success",
+              title: "Diplôme Certifié!",
+              text: "Le diplôme a été certifié avec succès. Le téléchargement a commencé.",
+              confirmButtonText: "OK",
+            })
+          } else if (contentType && contentType.includes("application/json")) {
+            // Handle JSON response (for verification or non-PDF certification success/error)
+            const actionResult = await actionResponse.json()
+
+            if (actionResult.valid) {
+              // Assuming 'valid' key indicates success for verification too
+              if (documentType === "certification") {
+                // This case should ideally not happen if certification always returns PDF on success
+                // But as a fallback, if it returns JSON with valid=true
+                Swal.fire({
+                  icon: "success",
+                  title: "Diplôme Certifié!",
+                  text:
+                    actionResult.message ||
+                    "Le diplôme est certifié, mais aucun PDF n'a été retourné (réponse JSON).",
+                  confirmButtonText: "OK",
+                })
+              } else {
+                // Verification success
+                Swal.fire({
+                  icon: "success",
+                  title: "Diplôme Authentifié!",
+                  html: `
+                            <p>${
+                              actionResult.message ||
+                              "Le diplôme est authentique."
+                            }</p>
+                            <p><strong>Confiance:</strong> ${
+                              actionResult.confidence || "N/A"
+                            }</p>
+                        `,
+                  confirmButtonText: "OK",
+                })
+              }
             } else {
-              // pdfUrl missing in response
+              // Handle JSON error response (valid=false or other error structure)
+              let errorHtml = `<p>${
+                actionResult.message || "L'opération a échoué."
+              }</p>`
+              if (
+                actionResult.mismatches &&
+                actionResult.mismatches.length > 0
+              ) {
+                errorHtml += "<p><strong>Divergences:</strong></p><ul>"
+                actionResult.mismatches.forEach((mismatch:string) => {
+                  // Removed type annotation for JS
+                  errorHtml += `<li>${mismatch}</li>`
+                })
+                errorHtml += "</ul>"
+              }
               Swal.fire({
-                icon: "warning",
-                title: "Certification Réussie, mais...",
-                text:
-                  actionResult.message ||
-                  "Le diplôme est certifié, mais le lien de téléchargement du PDF est manquant.",
+                icon: "error",
+                title:
+                  documentType === "certification"
+                    ? "Échec de la Certification"
+                    : "Échec de l'Authentification",
+                html: errorHtml,
                 confirmButtonText: "OK",
               })
             }
           } else {
-            // Handle verification success
+            // Unexpected content type
+            Swal.close()
+            const errorText = await actionResponse.text() // Get raw text for debugging
+            console.error(
+              "Unexpected content type:",
+              contentType,
+              "Response text:",
+              errorText
+            )
+            setError(
+              `Réponse inattendue du serveur (type: ${contentType}). Veuillez vérifier la console.`
+            )
+            setStatus("error")
             Swal.fire({
-              icon: "success",
-              title: "Diplôme Authentifié!",
-              html: `
-                <p>${actionResult.message || "Le diplôme est authentique."}</p>
-                <p><strong>Confiance:</strong> ${
-                  actionResult.confidence || "N/A"
-                }</p>
-              `,
+              icon: "error",
+              title: "Erreur Inattendue",
+              text: `Le serveur a retourné un type de contenu inattendu: ${contentType}.`,
               confirmButtonText: "OK",
             })
           }
         } else {
-          // Handle errors for both verification and certification
-          let errorHtml = `<p>${
-            actionResult.message || "L'opération a échoué."
-          }</p>`
-          if (actionResult.mismatches && actionResult.mismatches.length > 0) {
-            errorHtml += "<p><strong>Divergences:</strong></p><ul>"
-            actionResult.mismatches.forEach((mismatch: string) => {
-              errorHtml += `<li>${mismatch}</li>`
-            })
-            errorHtml += "</ul>"
+          // actionResponse not ok
+          Swal.close()
+          // Attempt to parse as JSON first, as errors from your API route should be JSON
+          let errorData
+          let errorMessage = "Une erreur s'est produite lors du traitement."
+          try {
+            errorData = await actionResponse.json()
+            errorMessage = errorData.error || errorData.message || errorMessage
+            if (errorData.mismatches && errorData.mismatches.length > 0) {
+              errorMessage += "<br/><p><strong>Divergences:</strong></p><ul>"
+              errorData.mismatches.forEach((mismatch:string) => {
+                errorMessage += `<li>${mismatch}</li>`
+              })
+              errorMessage += "</ul>"
+            }
+          } catch (e) {
+            // If not JSON, use the status text or a generic message
+            errorMessage =
+              actionResponse.statusText ||
+              "Erreur de communication avec le serveur."
+            const responseText = await actionResponse.text() // Get raw text for debugging
+            console.error(
+              "Non-OK response, not JSON. Status:",
+              actionResponse.status,
+              "Text:",
+              responseText
+            )
           }
+
+          setError(
+            errorMessage
+              .replace(/<br\/?>/g, "\n")
+              .replace(/<p>|<\/p>|<ul>|<\/ul>|<li>|<\/li>/g, "")
+          ) // For a plain text setError
+          setStatus("error")
           Swal.fire({
             icon: "error",
-            title:
-              documentType === "certification"
-                ? "Échec de la Certification"
-                : "Échec de l'Authentification",
-            html: errorHtml,
+            title: "Erreur de Traitement",
+            html: errorMessage, // Use html here if errorMessage contains HTML
             confirmButtonText: "OK",
           })
         }
       } catch (apiError) {
-        console.error("Error during diploma action:", apiError)
+        Swal.close() // Ensure loading alert is closed on any catch
+        console.error(
+          "Error during diploma action (fetch/network error):",
+          apiError
+        )
+        // Assuming setError and setStatus are state setters if this is in a React/Vue component
+        
+          setError(
+            "Une erreur de communication s'est produite. Veuillez réessayer."
+          )
+         setStatus("error")
         Swal.fire({
           icon: "error",
           title: "Erreur de Communication",
-          text: "Une erreur s'est produite lors de la communication avec le serveur. Veuillez réessayer.",
+          text: "Une erreur s'est produite lors de la communication avec le serveur. Veuillez vérifier votre connexion et réessayer.",
           confirmButtonText: "OK",
         })
       }

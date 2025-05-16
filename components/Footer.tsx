@@ -33,7 +33,7 @@ const Footer = () => {
               </li>*/}
               <li>
                 <Link
-                  href="/faq"
+                  href="#"
                   className="text-sm text-muted-foreground hover:text-primary"
                 >
                   FAQ
@@ -41,7 +41,7 @@ const Footer = () => {
               </li>
               <li>
                 <Link
-                  href="/privacy"
+                  href="#"
                   className="text-sm text-muted-foreground hover:text-primary"
                 >
                   Confidentialité
@@ -49,7 +49,7 @@ const Footer = () => {
               </li>
               <li>
                 <Link
-                  href="/terms"
+                  href="#"
                   className="text-sm text-muted-foreground hover:text-primary"
                 >
                   Conditions
@@ -93,7 +93,7 @@ const Footer = () => {
             <ul className="mt-3 space-y-2">
               <li>
                 <Link
-                  href="/help"
+                  href="#"
                   className="text-sm text-muted-foreground hover:text-primary"
                 >
                   Centre d&apos;aide
@@ -101,7 +101,7 @@ const Footer = () => {
               </li>
               <li>
                 <Link
-                  href="/contact"
+                  href="#"
                   className="text-sm text-muted-foreground hover:text-primary"
                 >
                   Nous contacter
@@ -126,13 +126,13 @@ const Footer = () => {
             </p>
             <div className="flex items-center gap-4">
               <Link
-                href="/privacy"
+                href="#"
                 className="text-sm text-muted-foreground hover:text-primary"
               >
                 Politique de confidentialité
               </Link>
               <Link
-                href="/terms"
+                href="#"
                 className="text-sm text-muted-foreground hover:text-primary"
               >
                 Conditions d&apos;utilisation

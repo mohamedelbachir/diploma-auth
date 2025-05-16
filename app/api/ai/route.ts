@@ -110,11 +110,11 @@ async function extractDiplomaInfoFromText(rawText: string): Promise<any> { // Ch
             return extractedData;
         } else {
             // Handle cases where the model didn't call the tool as expected
-            console.error("Model did not return the expected tool call.", completion.choices[0]?.message);
+            console.log("Model did not return the expected tool call.", completion.choices[0]?.message);
             throw new Error("Failed to extract information using the specified tool.");
         }
     } catch (error) {
-        console.error("Error calling OpenAI API:", error);
+        console.log("Error calling OpenAI API:", error);
         throw error; // Re-throw the error to be handled by the caller
     }
 }
@@ -137,7 +137,7 @@ export async function POST(req: NextRequest) {
         return NextResponse.json(extractedData, { status: 200 });
 
     } catch (error: any) {
-        console.error("[API_AI_POST_ERROR]", error);
+        console.log("[API_AI_POST_ERROR]", error);
 
         // Handle JSON parsing errors
         if (error instanceof SyntaxError) {

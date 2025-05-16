@@ -66,7 +66,6 @@ const Header = () => {
       </>
     )
   }
-  console.log(user)
   const handleLogout = async () => {
     await logout()
     setOpen(false)

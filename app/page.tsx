@@ -4,10 +4,7 @@ import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import FeatureCards from "@/components/FeatureCards"
-import Footer from "@/components/Footer"
 import FormatCards from "@/components/FormatCards"
-import Header from "@/components/Header"
-import HowImage from "@/assets/how.jpg"
 import Student from "@/assets/college-degree.jpg"
 const Index = () => {
   return (
@@ -238,7 +235,7 @@ const Index = () => {
               className="px-8 py-6 text-lg bg-red-500 hover:bg-red-600 text-white"
               asChild
             >
-              <Link href="/login">Commencer</Link>
+              <Link href="/verify">Commencer</Link>
             </Button>
           </div>
         </div>
@@ -274,7 +271,7 @@ const Index = () => {
               Essayez notre service maintenant !
             </p>
             <Button size="lg" className="px-8" asChild>
-              <Link href="/pdf-to-word">Démarrer</Link>
+              <Link href="/verify">Démarrer</Link>
             </Button>
           </div>
         </div>

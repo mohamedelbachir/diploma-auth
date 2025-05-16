@@ -11,7 +11,7 @@ export async function POST(req: NextRequest) {
                 { status: 400 }
             );
         }
-        console.log(requestBody)                 
+        console.log("Request Body:", requestBody);
         let apiActionValue;
         if (actionType === "verification") {
             apiActionValue = "authenticate";
@@ -24,7 +24,6 @@ export async function POST(req: NextRequest) {
             );
         }
 
-        // Transform AI data for the verification/certification API
         const externalApiPayload = {
             action: apiActionValue,
             extracted: {
@@ -52,8 +51,8 @@ export async function POST(req: NextRequest) {
             );
         }
 
-        // Assuming the same endpoint for verify and certify, differentiated by 'action' in payload
         const externalApiEndpoint = `${backendApiUrl}/diplomas/verify/`;
+        console.log("Calling external API:", externalApiEndpoint, "with payload:", externalApiPayload);
 
         const externalApiResponse = await fetch(
             externalApiEndpoint,
@@ -61,29 +60,60 @@ export async function POST(req: NextRequest) {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
+                    // Add any other necessary headers for your external API, like an API key
+                    // "Authorization": `Bearer ${process.env.EXTERNAL_API_KEY}`
                 },
                 body: JSON.stringify(externalApiPayload),
             }
         );
 
-        const resultData = await externalApiResponse.json();
+        console.log("External API Response Status:", externalApiResponse.status);
+        console.log("External API Response Headers:", Object.fromEntries(externalApiResponse.headers.entries()));
+
 
         if (!externalApiResponse.ok) {
-            return NextResponse.json(resultData, { status: externalApiResponse.status });
+            // Even if not ok, it might be JSON (e.g., validation error from external API)
+            try {
+                const errorData = await externalApiResponse.json();
+                console.error("External API Error Response (JSON):", errorData);
+                return NextResponse.json(errorData, { status: externalApiResponse.status });
+            } catch (e) {
+                // If it's not JSON, it might be a plain text error or something else
+                const errorText = await externalApiResponse.text();
+                console.error("External API Error Response (Non-JSON):", errorText);
+                return NextResponse.json({ error: errorText || "An error occurred with the external service." }, { status: externalApiResponse.status });
+            }
         }
 
-        // For certification, we assume resultData might contain a pdfUrl or similar
-        // The frontend will handle the download based on this.
-        return NextResponse.json(resultData, { status: 200 });
+        const contentType = externalApiResponse.headers.get("content-type");
+
+        if (contentType && contentType.includes("application/pdf") && actionType === "certification") {
+            // If it's a PDF and the action was certification, stream it back
+            const pdfBuffer = await externalApiResponse.arrayBuffer();
+            return new NextResponse(pdfBuffer, {
+                status: 200,
+                headers: {
+                    "Content-Type": "application/pdf",
+                    "Content-Disposition": `attachment; filename="certified-diploma.pdf"`, // Suggest a filename
+                },
+            });
+        } else {
+            // Otherwise, assume it's JSON (or handle other types if necessary)
+            const resultData = await externalApiResponse.json();
+            console.log("External API Success Response (JSON):", resultData);
+            return NextResponse.json(resultData, { status: 200 });
+        }
 
     } catch (error: any) {
         console.error("[API_DIPLOMA_ACTION_POST_ERROR]", error);
         if (error instanceof SyntaxError) { // Error parsing requestBody
             return NextResponse.json({ error: 'Invalid JSON in request body' }, { status: 400 });
         }
+        // Ensure a more generic error message for unexpected issues
+        const errorMessage = error.message || "An unexpected error occurred processing your request.";
         return NextResponse.json(
-            { error: error.message || "An unexpected error occurred." },
+            { error: errorMessage },
             { status: 500 }
         );
     }
-} 
+}
