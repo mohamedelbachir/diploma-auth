@@ -30,9 +30,8 @@ const formSchema = z.object({
   diplomaID: z
     .string()
     .min(1, { message: "Diploma ID is required" })
-    .startsWith("DIP-2023-STU2025-", {
-      message:
-        "Identifiant du diplôme invalide. Doit commencer par DIP-2023-STU2025-",
+    .startsWith("DIP-", {
+      message: "Identifiant du diplôme invalide. Doit commencer par DIP-",
     }),
 })
 
@@ -108,7 +107,7 @@ export default function DiplomaPage() {
                         <FormLabel>ID du Diplôme</FormLabel>
                         <FormControl>
                           <Input
-                            placeholder="DIP-2023-STU2025-"
+                            placeholder="DIP-2023-"
                             {...field}
                             className={
                               //scanSuccess
