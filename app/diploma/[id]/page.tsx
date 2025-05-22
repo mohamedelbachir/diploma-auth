@@ -1,9 +1,11 @@
-import Image from "next/image"
-import { notFound } from "next/navigation"
 import Link from "next/link"
-import { getPdfAsImage } from "@/lib/pdf-utils"
+import { notFound } from "next/navigation"
+
 import { getSession } from "@/app/actions"
+
 import DownloadButton from "./download-button"
+import PdfPreview from "./pdf-preview"
+
 interface PageProps {
   params: {
     id: string
@@ -15,9 +17,26 @@ export default async function DiplomaDetailsPage({ params }: PageProps) {
   const session = await getSession()
   try {
     // Fetch and process the PDF on the server
-    const diplomaImageData = await getPdfAsImage(id)
+    const formData = new FormData()
+    formData.append("diplomaId", id)
 
-    if (!diplomaImageData) {
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL || ""}/api/v-download`,
+      {
+        method: "POST",
+        body: formData,
+        cache: "no-store",
+      }
+    )
+
+    if (!response.ok) {
+      if (response.status === 404) return null
+      throw new Error(`Failed to fetch diploma: ${response.status}`)
+    }
+
+    const pdfBuffer = await response.arrayBuffer()
+
+    if (!pdfBuffer) {
       notFound()
     }
 
@@ -28,17 +47,21 @@ export default async function DiplomaDetailsPage({ params }: PageProps) {
             Détails du Diplôme
           </h1>
           <div className="flex flex-col items-center gap-6">
-            <Image
-              src={`data:image/png;base64,${diplomaImageData}`}
-              alt="Aperçu du Diplôme"
-              width={600}
-              height={Math.round(600 * 1.414)} // Assuming A4 aspect ratio
-              className="rounded-md border border-gray-300 shadow-lg"
-            />
+            <PdfPreview image={pdfBuffer} />
             <p className="text-md mt-2 text-center text-gray-600">
               Ceci est la description du diplôme pour l&apos;ID : {id}
             </p>
-            {session?.user?<DownloadButton id={id}/>:<Link href="/login" className="mt-6 rounded-lg bg-primary px-6 py-3 text-lg font-medium text-white shadow-md transition-colors hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-opacity-50">Se connecter pour télécharger</Link>}
+            {session?.user ? (
+              <DownloadButton id={id} />
+            ) : (
+              <Link
+                href="/login"
+                // eslint-disable-next-line tailwindcss/migration-from-tailwind-2
+                className="mt-6 rounded-lg bg-primary px-6 py-3 text-lg font-medium text-white shadow-md transition-colors hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-opacity-50"
+              >
+                Se connecter pour télécharger
+              </Link>
+            )}
           </div>
         </div>
       </div>
