@@ -741,6 +741,10 @@ export function DocumentScanner({
     setProcessingStatus("")
     setExtractedText([])
     setResult({})
+    // Reset the file input so that the same file can be selected again
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ""
+    }
   }
 
   // Clean up object URLs on unmount
