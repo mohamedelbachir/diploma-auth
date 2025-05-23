@@ -1,5 +1,5 @@
 /* eslint-disable tailwindcss/migration-from-tailwind-2 */
-import { Link } from "lucide-react"
+import { Link } from "next/link"
 
 function ErrorPage() {
   return (
