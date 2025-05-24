@@ -1,22 +1,15 @@
 "use client"
 
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useState } from "react"
 import Image from "next/image"
 
 interface PdfPreviewProps {
   data: string // base64 PDF data
 }
 
-declare global {
-  interface Window {
-    pdfjsLib: typeof import("pdfjs-dist")
-  }
-}
-
 export default function PdfPreview({ data }: PdfPreviewProps) {
   const [imageData, setImageData] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
-  const canvasRef = useRef<HTMLCanvasElement | null>(null)
 
   function base64ToArrayBuffer(base64: string): ArrayBuffer {
     const binaryString = atob(base64)
@@ -29,53 +22,46 @@ export default function PdfPreview({ data }: PdfPreviewProps) {
   }
 
   useEffect(() => {
-    let isMounted = true
-
     const loadAndRender = async () => {
-      setLoading(true)
-      try {
-        // Dynamically load pdf.js if not already loaded
-        if (!window.pdfjsLib || !window.pdfjsLib.getDocument) {
-          await new Promise<void>((resolve, reject) => {
-            const script = document.createElement("script")
-            script.src = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"
-            script.async = true
-            script.onload = () => resolve()
-            script.onerror = () => reject("Failed to load pdf.js")
-            document.body.appendChild(script)
-          })
-          window.pdfjsLib.GlobalWorkerOptions.workerSrc =
-            "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js"
-        }
+      if (!window.pdfjsLib) {
+        const script = document.createElement("script")
+        script.src =
+          "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"
+        script.async = true
+        document.body.appendChild(script)
 
+        await new Promise((resolve) => {
+          script.onload = resolve
+        })
+
+        window.pdfjsLib.GlobalWorkerOptions.workerSrc =
+          "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js"
+      }
+
+      try {
         const arrayBuffer = base64ToArrayBuffer(data)
-        const pdf = await window.pdfjsLib.getDocument({ data: arrayBuffer }).promise
+        const pdf = await window.pdfjsLib.getDocument({ data: arrayBuffer })
+          .promise
         const page = await pdf.getPage(1)
         const viewport = page.getViewport({ scale: 1.5 })
-
-        const canvas = canvasRef.current ?? document.createElement("canvas")
+        const canvas = document.createElement("canvas")
         const context = canvas.getContext("2d")
-        if (!context) throw new Error("Canvas rendering context not available")
 
         canvas.height = viewport.height
         canvas.width = viewport.width
 
         await page.render({ canvasContext: context, viewport }).promise
 
-        if (isMounted) {
-          setImageData(canvas.toDataURL("image/png"))
-        }
+        const imgData = canvas.toDataURL("image/png")
+        setImageData(imgData)
+        setLoading(false)
       } catch (error) {
         console.error("Error rendering PDF:", error)
-      } finally {
-        if (isMounted) setLoading(false)
+        setLoading(false)
       }
     }
 
     loadAndRender()
-    return () => {
-      isMounted = false
-    }
   }, [data])
 
   return (
