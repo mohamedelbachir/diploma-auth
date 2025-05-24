@@ -1,8 +1,8 @@
 /* eslint-disable tailwindcss/migration-from-tailwind-2 */
 "use client"
-
+import { Button } from "@/components/ui/button";
 import React from "react"
-
+import { Download } from "lucide-react";
 interface Props {
   id: string
 }
@@ -39,11 +39,9 @@ export default function DownloadButton({ id }: Props) {
   }
 
   return (
-    <button
-      onClick={handleDownload}
-      className="mt-6 rounded-lg bg-primary px-6 py-3 text-lg font-medium text-white shadow-md transition-colors hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-opacity-50"
-    >
+     <Button onClick={handleDownload} className="mt-6 text-lg gap-2" size="lg">
+      <Download className="w-5 h-5" />
       Télécharger le Diplôme
-    </button>
+    </Button>
   )
 }

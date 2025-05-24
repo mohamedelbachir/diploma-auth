@@ -1,15 +1,22 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import Image from "next/image"
 
 interface PdfPreviewProps {
   data: string // base64 PDF data
 }
 
+declare global {
+  interface Window {
+    pdfjsLib: typeof import("pdfjs-dist")
+  }
+}
+
 export default function PdfPreview({ data }: PdfPreviewProps) {
   const [imageData, setImageData] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
+  const canvasRef = useRef<HTMLCanvasElement | null>(null)
 
   function base64ToArrayBuffer(base64: string): ArrayBuffer {
     const binaryString = atob(base64)
@@ -22,46 +29,53 @@ export default function PdfPreview({ data }: PdfPreviewProps) {
   }
 
   useEffect(() => {
+    let isMounted = true
+
     const loadAndRender = async () => {
-      if (!window.pdfjsLib) {
-        const script = document.createElement("script")
-        script.src =
-          "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"
-        script.async = true
-        document.body.appendChild(script)
-
-        await new Promise((resolve) => {
-          script.onload = resolve
-        })
-
-        window.pdfjsLib.GlobalWorkerOptions.workerSrc =
-          "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js"
-      }
-
+      setLoading(true)
       try {
+        // Dynamically load pdf.js if not already loaded
+        if (!window.pdfjsLib || !window.pdfjsLib.getDocument) {
+          await new Promise<void>((resolve, reject) => {
+            const script = document.createElement("script")
+            script.src = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"
+            script.async = true
+            script.onload = () => resolve()
+            script.onerror = () => reject("Failed to load pdf.js")
+            document.body.appendChild(script)
+          })
+          window.pdfjsLib.GlobalWorkerOptions.workerSrc =
+            "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js"
+        }
+
         const arrayBuffer = base64ToArrayBuffer(data)
-        const pdf = await window.pdfjsLib.getDocument({ data: arrayBuffer })
-          .promise
+        const pdf = await window.pdfjsLib.getDocument({ data: arrayBuffer }).promise
         const page = await pdf.getPage(1)
         const viewport = page.getViewport({ scale: 1.5 })
-        const canvas = document.createElement("canvas")
+
+        const canvas = canvasRef.current ?? document.createElement("canvas")
         const context = canvas.getContext("2d")
+        if (!context) throw new Error("Canvas rendering context not available")
 
         canvas.height = viewport.height
         canvas.width = viewport.width
 
         await page.render({ canvasContext: context, viewport }).promise
 
-        const imgData = canvas.toDataURL("image/png")
-        setImageData(imgData)
-        setLoading(false)
+        if (isMounted) {
+          setImageData(canvas.toDataURL("image/png"))
+        }
       } catch (error) {
         console.error("Error rendering PDF:", error)
-        setLoading(false)
+      } finally {
+        if (isMounted) setLoading(false)
       }
     }
 
     loadAndRender()
+    return () => {
+      isMounted = false
+    }
   }, [data])
 
   return (
@@ -73,16 +87,8 @@ export default function PdfPreview({ data }: PdfPreviewProps) {
               className="animate-spin text-teal-500"
               viewBox="0 0 24 24"
               fill="none"
-              xmlns="http://www.w3.org/2000/svg"
             >
-              <circle
-                className="opacity-25"
-                cx="12"
-                cy="12"
-                r="10"
-                stroke="currentColor"
-                strokeWidth="4"
-              />
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
               <path
                 className="opacity-75"
                 fill="currentColor"
@@ -96,17 +102,17 @@ export default function PdfPreview({ data }: PdfPreviewProps) {
 
       {imageData && (
         <div className="group relative">
-          <div className="absolute -inset-1 rounded-lg bg-gradient-to-r from-teal-500 to-emerald-600 opacity-25 blur transition duration-1000 group-hover:opacity-40 group-hover:duration-200"></div>
+          <div className="absolute -inset-1 rounded-lg bg-gradient-to-r from-teal-500 to-emerald-600 opacity-25 blur transition duration-1000 group-hover:opacity-40 group-hover:duration-200" />
           <div className="relative">
             <Image
-              src={imageData || "/placeholder.svg"}
+              src={imageData}
               alt="Aperçu du Diplôme"
               width={600}
+              height={400}
               className="pointer-events-none aspect-video h-64 rounded-lg border border-gray-200 bg-white object-contain shadow-lg transition-all"
               draggable={false}
               onContextMenu={(e) => e.preventDefault()}
               onPointerDown={(e) => {
-                // Prevent long-press save on mobile
                 if (e.pointerType === "touch") e.preventDefault()
               }}
             />

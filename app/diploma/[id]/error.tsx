@@ -1,51 +1,41 @@
 "use client"
-/* eslint-disable tailwindcss/migration-from-tailwind-2 */
-import Link  from "next/link"
 
-function ErrorPage() {
+import Link from "next/link"
+import { AlertTriangle } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent } from "@/components/ui/card"
+
+export default function ErrorPage() {
   return (
-    <>
-      <div className="mb-8 flex w-full items-center justify-center">
-        <h1 className="bg-gradient-to-r from-teal-500 to-emerald-600 bg-clip-text text-center text-3xl font-bold text-transparent">
-          Détails du Diplôme
-        </h1>
-      </div>
+    <div className="flex flex-col items-center justify-center px-4 py-10">
+      {/* Title */}
+      <h1 className="mb-8 bg-gradient-to-r from-primary to-secondary bg-clip-text text-center text-3xl font-bold text-transparent">
+        Détails du Diplôme
+      </h1>
 
-      <div className="flex w-full flex-col items-center justify-center rounded-xl border border-red-200 bg-red-50 p-8 transition-all">
-        <div className="relative mb-6">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="size-16 text-red-500"
-            viewBox="0 0 20 20"
-            fill="currentColor"
-          >
-            <path
-              fillRule="evenodd"
-              d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
-              clipRule="evenodd"
-            />
-          </svg>
-          <div className="absolute -right-2 -top-2 size-6 animate-pulse rounded-full bg-red-200"></div>
-        </div>
+      {/* Error card */}
+      <Card className="w-full max-w-md border-red-200 bg-red-50 shadow-sm">
+        <CardContent className="flex flex-col items-center justify-center p-8 text-center">
+          <div className="relative mb-4">
+            <AlertTriangle className="h-16 w-16 text-red-500" />
+            <div className="absolute -right-2 -top-2 h-6 w-6 animate-pulse rounded-full bg-red-200" />
+          </div>
 
-        <h3 className="mb-2 text-xl font-semibold text-red-700">
-          Erreur lors du traitement du diplôme
-        </h3>
-        <p className="max-w-md text-center text-red-600">
-          Nous n&apos;avons pas pu récupérer les informations du diplôme
-          demandé. Veuillez réessayer ultérieurement.
-        </p>
+          <h3 className="mb-2 text-xl font-semibold text-red-700">
+            Erreur lors du traitement du diplôme
+          </h3>
+          <p className="mb-6 text-red-600">
+            Nous n&apos;avons pas pu récupérer les informations du diplôme
+            demandé. Veuillez réessayer ultérieurement.
+          </p>
 
-        <Link
-          href="/"
-          className="group relative mt-8 overflow-hidden rounded-lg bg-gradient-to-r from-red-500 to-red-600 px-6 py-3 text-base font-medium text-white shadow-md transition-all hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50"
-        >
-          <span className="relative z-10">Retour à l&apos;accueil</span>
-          <span className="absolute inset-0 bg-white opacity-0 transition-opacity group-hover:opacity-20"></span>
-        </Link>
-      </div>
-    </>
+          <Button asChild className="bg-red-500 hover:bg-red-600">
+            <Link href="/">
+              Retour à l&apos;accueil
+            </Link>
+          </Button>
+        </CardContent>
+      </Card>
+    </div>
   )
 }
-
-export default ErrorPage
