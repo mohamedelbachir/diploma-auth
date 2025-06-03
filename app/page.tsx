@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import FeatureCards from "@/components/FeatureCards"
 import FormatCards from "@/components/FormatCards"
-import Student from "@/assets/college-degree.jpg"
+import Student from "@/assets/college-degree.jpeg"
 const Index = () => {
   return (
     <>
